@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>市场物料到店管理系统</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#333;font-size:14px}
+.header{background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:17px;font-weight:600}
+.header .info{font-size:12px;opacity:.8}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #e0e0e0;padding:0 16px;overflow-x:auto}
+.tab{padding:11px 20px;cursor:pointer;font-size:14px;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;color:#666;user-select:none;white-space:nowrap}
+.tab:hover{color:#1a73e8}
+.tab.active{color:#1a73e8;border-bottom-color:#1a73e8;font-weight:600}
+.content{padding:18px 22px;max-width:1500px;margin:0 auto}
+.page{display:none}
+.page.active{display:block}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;transition:opacity .1s;white-space:nowrap}
+.btn:hover{opacity:.88}
+.btn-primary{background:#1a73e8;color:#fff}
+.btn-success{background:#34a853;color:#fff}
+.btn-danger{background:#ea4335;color:#fff}
+.btn-outline{background:#fff;color:#1a73e8;border:1px solid #1a73e8}
+.btn-outline:hover{background:#e8f0fe;opacity:1}
+.btn-gray{background:#f1f3f4;color:#555}
+.btn-sm{padding:3px 9px;font-size:12px}
+.search-box{padding:7px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;width:220px;outline:none;transition:border .15s}
+.search-box:focus{border-color:#1a73e8;box-shadow:0 0 0 3px rgba(26,115,232,.12)}
+.table-wrap{background:#fff;border-radius:8px;overflow:auto;box-shadow:0 1px 3px rgba(0,0,0,.07);max-height:68vh}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8f9fa;padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid #e0e0e0;white-space:nowrap;position:sticky;top:0;z-index:1}
+td{padding:0;border-bottom:1px solid #f0f0f0;white-space:nowrap}
+.chart-box h4 .legend{float:right;font-size:12px;font-weight:400;color:#666;display:flex;gap:12px;align-items:center}
+.chart-box h4 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+#contactWrap table{width:max-content;min-width:100%}
+#contactWrap td,#contactWrap th{padding:0}
+#previewHead th[data-col]{cursor:pointer;user-select:none;position:relative;padding-right:20px}
+#previewHead th[data-col]:hover{background:#e8f0fe}
+#previewHead th[data-col] .fmark{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:#bbb;font-style:normal}
+#previewHead th[data-col] .fmark::before{content:'▾'}
+#previewHead th.filtered{background:#e8f0fe;color:#1a73e8}
+#previewHead th.filtered .fmark{color:#1a73e8}
+.xf-popup{position:fixed;z-index:200;background:#fff;border:1px solid #c5dafc;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.18);width:240px;font-size:13px;padding:10px}
+.xf-search{width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;outline:none;margin-bottom:6px;box-sizing:border-box}
+.xf-search:focus{border-color:#1a73e8}
+.xf-top{display:flex;gap:6px;align-items:center;font-size:12px;color:#555;margin-bottom:5px}
+.xf-list{max-height:200px;overflow:auto;border:1px solid #f0f0f0;border-radius:4px;padding:3px}
+.xf-list label{display:flex;gap:6px;align-items:center;padding:3px 4px;font-size:12px;cursor:pointer;white-space:nowrap;overflow:hidden}
+.xf-list label span{overflow:hidden;text-overflow:ellipsis}
+.xf-list label:hover{background:#f0f6ff}
+.xf-empty{color:#aaa;font-size:12px;padding:8px;text-align:center}
+.xf-btns{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+.xf-btns button{padding:4px 12px;font-size:12px;border-radius:4px;border:1px solid #ddd;background:#fff;cursor:pointer}
+.xf-btns .ok{background:#1a73e8;color:#fff;border-color:#1a73e8}
+td input,td select{width:100%;border:none;padding:6px 8px;font-size:13px;background:transparent;outline:none;font-family:inherit}
+td input:focus,td select:focus{background:#e8f0fe;box-shadow:inset 0 0 0 2px #1a73e8}
+td input::placeholder{color:#bbb}
+td .cell-text{padding:6px 8px;min-height:30px;cursor:default}
+tr:hover{background:#f8f9fc}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.badge-green{background:#e6f4ea;color:#1e8e3e}
+.badge-red{background:#fce8e6;color:#d93025}
+.badge-gray{background:#f1f3f4;color:#5f6368}
+.empty{text-align:center;padding:50px;color:#aaa;font-size:14px}
+.drop-zone{border:2px dashed #bbb;border-radius:10px;padding:34px;text-align:center;color:#999;cursor:pointer;transition:all .2s;margin-bottom:14px}
+.drop-zone:hover,.drop-zone.dragover{border-color:#1a73e8;background:#f0f6ff;color:#1a73e8}
+.drop-zone p{font-size:15px;margin-bottom:4px}
+.drop-zone .hint{font-size:12px;color:#aaa}
+.match-info{background:#f0f7ff;border:1px solid #c5dafc;border-radius:8px;padding:14px 18px;margin-bottom:12px;font-size:13px;display:flex;gap:24px;flex-wrap:wrap}
+.match-info .item{display:flex;gap:6px;align-items:center}
+.match-info .item .num{font-size:20px;font-weight:700;color:#1a73e8}
+.match-info .item .lbl{color:#666;font-size:13px}
+.match-info .item.warn .num{color:#ea4335}
+.match-info .item.ok .num{color:#34a853}
+.preview-table{max-height:50vh;overflow:auto;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:12px}
+.preview-table table{font-size:12px;width:max-content;min-width:100%}
+.preview-table th{font-size:12px;padding:7px 8px;white-space:nowrap}
+.preview-table td{padding:0}
+.preview-table td.p-code{padding:0 8px;font-family:monospace;font-size:11px;color:#5f6368;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.preview-table td select,.preview-table td input{font-size:12px;padding:5px 6px}
+.cell-matched{background:#e8f5e9}
+.cell-unmatched{background:#fce8e6}
+.form-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.form-row label{font-size:13px;color:#555;white-space:nowrap}
+.filter-select{padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff;outline:none}
+.filter-select:focus{border-color:#1a73e8}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.stat-card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.stat-card .num{font-size:28px;font-weight:700;color:#1a73e8}
+.stat-card .lbl{font-size:12px;color:#888;margin-top:2px}
+.stat-card.g .num{color:#34a853}.stat-card.o .num{color:#f9ab00}.stat-card.r .num{color:#ea4335}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.chart-box{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.chart-box h4{font-size:14px;color:#333;margin-bottom:12px;font-weight:600}
+.chart-box canvas{max-height:300px}
+.cross-table{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.07);overflow:auto;margin-bottom:16px}
+.cross-table h4{font-size:14px;color:#333;margin-bottom:12px;font-weight:600}
+.cross-table h4 .tmark{display:inline-block;width:4px;height:11px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.cross-table table{font-size:12px}
+#crossTable table{width:max-content;min-width:100%}
+#crossTable th.x-total{background:#f1f3f4;color:#202124;font-weight:600}
+#crossTable td:nth-child(2){font-weight:600;color:#202124}
+.cross-table th{position:static;background:#f7f8fa;padding:7px 10px;text-align:center;font-size:12px;color:#5f6368;font-weight:600}
+.cross-table td{padding:6px 10px;text-align:center;border:1px solid #f0f0f0}
+.cross-table td:first-child{text-align:left;font-weight:500;background:none;border-left:4px solid transparent}
+.cross-table tr:hover{background:#fafbfc}
+.cross-table .has-data{font-weight:600;color:#202124}
+.cross-table .no-data{color:#ccc}
+.cross-table td.area-auth{border-left-color:#f9ab00;font-weight:600;color:#8a5a00}
+.cross-table td.area-mijia{border-left-color:#34a853;font-weight:600;color:#1e7d37}
+.cross-table td.area-other{border-left-color:#9aa0a6;color:#5f6368}
+.dash-cols{display:grid;grid-template-columns:35fr 65fr;gap:16px;align-items:start;margin-bottom:16px}
+.dash-cols .chart-box,.dash-cols .cross-table{margin-bottom:0}
+.act-list{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.act-list h4{font-size:14px;color:#333;margin-bottom:12px;font-weight:600}
+.act-item{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.act-item:last-child{border:none}
+.act-item .act-name{flex:1}
+.act-item .act-date{color:#888;font-size:12px}
+.act-item .act-count{background:#e8f0fe;color:#1a73e8;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:500}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:100;justify-content:center;align-items:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:12px;padding:24px;width:540px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.modal h3{font-size:17px;margin-bottom:18px;color:#1a73e8}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.modal .form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.modal .form-group label{font-size:13px;color:#555;font-weight:500}
+.modal .form-group input,.modal .form-group select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none}
+.modal .form-group input:focus,.modal .form-group select:focus{border-color:#1a73e8}
+.act-edit-row{display:flex;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f0}
+.act-edit-row input[type=text]{flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.act-edit-row input[type=date]{padding:5px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px}
+.pager{display:flex;gap:6px;align-items:center;justify-content:center;padding:10px;font-size:13px;color:#666}
+.pager button{padding:4px 12px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:13px}
+.pager button:hover{border-color:#1a73e8;color:#1a73e8}
+.pager button:disabled{opacity:.4;cursor:default}
+.cb-col{text-align:center;width:32px}
+.filter-input{width:100%;padding:4px 6px;font-size:12px;border:1px solid #c5dafc;border-radius:4px;outline:none;background:#fff}
+.filter-input:focus{border-color:#1a73e8}
+@media(max-width:1200px){.dash-cols{grid-template-columns:1fr}}
+@media(max-width:900px){.chart-grid{grid-template-columns:1fr}.content{padding:10px}}
+/* 隐藏 CodeSandbox 注入的水印按钮（仅 csb 托管下生效） */
+a[href^="https://codesandbox.io/s/"]{display:none!important}
+iframe[id^="sb__open-sandbox"]{display:none!important}
+/* 设置弹窗分区 */
+.set-sec{border-top:1px solid #eee;padding:12px 0}
+.set-h{font-size:13px;font-weight:600;color:#333;margin-bottom:8px}
+.lbl-in{flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+#labelEditList{max-height:54vh;overflow-y:auto;padding-right:4px}
+#labelEditList::-webkit-scrollbar{width:8px}
+#labelEditList::-webkit-scrollbar-thumb{background:#dcdcdc;border-radius:4px}
+/* 设置悬浮卡片 */
+.set-wrap{position:relative}
+.set-pop{display:none;position:absolute;right:0;top:100%;padding-top:6px;width:150px;z-index:120}
+.set-wrap:hover .set-pop,.set-wrap.open .set-pop{display:block}
+.set-pop-card{background:#fff;border:1px solid #e6e8eb;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.14);overflow:hidden}
+.set-pop-item{display:flex;gap:7px;align-items:center;width:100%;text-align:left;padding:6px 9px;background:#fff;border:none;border-bottom:1px solid #f2f3f5;cursor:pointer;transition:background .1s}
+.set-pop-item:last-child{border-bottom:none}
+.set-pop-item:hover{background:#f0f6ff}
+.set-pop-item i{flex:none;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;color:#80868b}
+.set-pop-item b{font-size:13px;font-weight:500;color:#202124;white-space:nowrap}
+/* 加载提示 */
+.load-tip{position:fixed;top:14%;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:9px;background:rgba(32,33,36,.94);color:#fff;font-size:13px;padding:11px 18px;border-radius:8px;z-index:400;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.load-tip.show{display:flex}
+.load-spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="appRoot">
+<div class="header">
+  <h1 data-lk="appName">市场物料到店管理系统</h1>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span id="syncDot" style="font-size:12px;color:rgba(255,255,255,.7)">☁ 未同步</span>
+    <button class="btn" data-lk="btnContacts" style="background:none;border:none;color:#fff" onclick="switchTab('contacts')">门店信息</button>
+    <div class="set-wrap" id="setWrap">
+      <button class="btn" data-lk="btnSettings" style="background:none;border:none;color:#fff" onclick="toggleSetPop(event)">设置</button>
+      <div class="set-pop" id="setPop">
+        <div class="set-pop-card">
+          <button class="set-pop-item" title="重新加载页面，读取最新数据" onclick="setAction('page')"><i>&#8635;</i><b>刷新页面</b></button>
+          <button class="set-pop-item" title="立即从云端拉取并推送全部数据" onclick="setAction('sync')"><i>&#9729;</i><b>云端同步</b></button>
+          <button class="set-pop-item" title="导出 JSON 快照存档 / 从备份恢复" onclick="setAction('backup')"><i>&#8681;</i><b>数据备份</b></button>
+          <button class="set-pop-item" title="自定义界面文字（标题、按钮、表格名…）" onclick="setAction('label')"><i>&#9998;</i><b>界面编辑</b></button>
+          <button class="set-pop-item" title="改名 / 删除历史物流单" onclick="setAction('orders')"><i>&#128203;</i><b>历史物流单</b></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dataAlert" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#fff7e6;border-bottom:1px solid #ffe0b2;padding:9px 16px;font-size:13px;color:#8a5300">
+  <span id="dataAlertMsg">未检测到本地数据</span>
+  <button class="btn btn-primary btn-sm" onclick="recoverFromCloud()">从云端恢复</button>
+  <button class="btn btn-gray btn-sm" onclick="document.getElementById('backupFile').click()">导入备份</button>
+  <input type="file" id="backupFile" accept=".json,application/json" style="display:none" onchange="restoreBackup(this)">
+  <button class="btn btn-sm" style="margin-left:auto;background:none;border:none;color:#8a5300" onclick="document.getElementById('dataAlert').style.display='none'">知道了</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-page="import" data-lk="tabImport">物流管理</div>
+  <div class="tab" data-page="dashboard" data-lk="tabDashboard">月度活动汇总</div>
+</div>
+
+<div class="content">
+
+  <!-- ========== 物流管理 ========== -->
+  <div class="page active" id="page-import">
+    <div class="toolbar">
+      <h3 style="margin-right:auto;font-size:15px" data-lk="pageTitle">物流单号上传</h3>
+      <span style="font-size:13px;color:#666" data-lk="historyLabel">历史物流单</span>
+      <select id="orderSelect" class="filter-select" onchange="switchOrder(this.value)" style="max-width:300px"></select>
+      <button class="btn btn-success" data-lk="btnExportCsv" onclick="exportCSV()">下载CSV</button>
+      <button class="btn btn-outline" data-lk="btnNewAct" onclick="openActModal()">新建活动</button>
+    </div>
+
+    <div class="drop-zone" id="dropZone" onclick="handleUploadClick()">
+      <p id="dzTitle" data-lk="dzTitle">点击或拖拽上传顺丰回单Excel</p>
+      <p class="hint" id="dzHint" data-lk="dzHint">支持 .xlsx / .xls / .csv；上传前需先输入物流下单时间</p>
+      <input type="file" id="sfFile" accept=".xlsx,.xls,.csv" style="display:none">
+    </div>
+
+    <div id="importResult" style="display:none">
+      <div class="match-info" id="matchInfo"></div>
+
+      <div class="form-row" id="batchRow" style="display:none">
+        <input type="checkbox" id="checkAll" onchange="toggleCheckAll(this.checked)" style="cursor:pointer">
+        <label for="checkAll" style="cursor:pointer">全选</label>
+        <span style="color:#ddd">|</span>
+        <label data-lk="batchActLabel">批量设活动：</label>
+        <select class="filter-select" id="batchActSelect"></select>
+        <button class="btn btn-primary btn-sm" data-lk="btnApplySel" onclick="batchApplyActivity()">应用到选中</button>
+        <span id="selCount" style="font-size:12px;color:#1a73e8"></span>
+      </div>
+
+      <div class="preview-table" id="previewWrap">
+        <table>
+          <thead>
+            <tr id="previewHead">
+              <th class="cb-col"><input type="checkbox" id="checkAll2" onchange="toggleCheckAll(this.checked)"></th>
+              <th data-col="tracking">运单号<i class="fmark"></i></th>
+              <th data-col="productName">物料名称<i class="fmark"></i></th>
+              <th data-col="qty">数量<i class="fmark"></i></th>
+              <th data-col="name">收方姓名<i class="fmark"></i></th>
+              <th data-col="phone">收方手机<i class="fmark"></i></th>
+              <th data-col="storeCode">门店代码<i class="fmark"></i></th>
+              <th data-col="matchedStore">匹配门店<i class="fmark"></i></th>
+              <th data-col="activity">礼品所属活动<i class="fmark"></i></th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody id="previewBody" onclick="handlePreviewClick(event)"></tbody>
+        </table>
+      </div>
+      <datalist id="storeOpts"></datalist>
+
+      <div class="toolbar">
+        <button class="btn btn-gray" data-lk="btnClearOrder" onclick="clearImport()">清空当前单数据</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== 月度活动汇总 ========== -->
+  <div class="page" id="page-dashboard">
+    <div class="toolbar">
+      <h3 style="margin-right:auto;font-size:15px" data-lk="dashTitle">月度活动汇总</h3>
+      <span style="font-size:13px;color:#666" data-lk="dashMonthLabel">查看月份</span>
+      <select id="dashMonth" class="filter-input" style="width:auto;padding:6px 12px;font-size:13px" onchange="renderDashboard()"></select>
+    </div>
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="cross-table" id="actSummary" style="margin-bottom:16px">
+      <h4 data-lk="sumTitle">市场活动汇总</h4>
+      <div id="actSummaryBody"></div>
+    </div>
+
+    <div class="dash-cols">
+    <div class="chart-box">
+      <h4><span data-lk="areaChartTitle">各小区/区域门店数</span><span class="legend"><i style="background:#f9ab00"></i>授权<i style="background:#34a853"></i>专卖<i style="background:#9aa0a6"></i>其他</span></h4>
+      <canvas id="chartArea" style="max-height:350px"></canvas>
+    </div>
+
+    <div class="cross-table" id="crossTable">
+      <h4><span data-lk="crossTitle">区域活动计数</span>
+        <span style="float:right;font-weight:400;font-size:12px;color:#888">
+          <span class="tmark" style="background:#f9ab00"></span> 授权
+          <span class="tmark" style="background:#34a853"></span> 专卖/米家
+          <span class="tmark" style="background:#9aa0a6"></span> 其他
+        </span>
+      </h4>
+      <div id="crossTableBody"></div>
+    </div>
+    </div><!-- /dash-cols -->
+  </div>
+
+  <!-- ========== 联系人 ========== -->
+  <div class="page" id="page-contacts">
+    <div class="toolbar">
+      <button class="btn btn-gray" onclick="switchTab('import')">&larr; 返回</button>
+      <span style="color:#ddd">|</span>
+      <button class="btn btn-primary" data-lk="btnAddRow" onclick="addContactRow()">+ 新增行</button>
+      <button class="btn btn-danger" data-lk="btnDelSel" onclick="deleteSelectedContacts()">删除选中</button>
+      <button class="btn btn-success" data-lk="btnExportContacts" onclick="exportContacts()">导出</button>
+      <input type="file" accept=".xlsx,.xls,.csv" id="contactFile" style="display:none">
+      <button class="btn btn-outline" data-lk="btnImportContacts" onclick="document.getElementById('contactFile').click()">导入Excel</button>
+      <input type="text" class="search-box" id="contactSearch" placeholder="搜索门店、收货人、地址…">
+      <span style="font-size:12px;color:#999;margin-left:auto" data-lk="contactHint">点击单元格直接编辑，自动保存</span>
+    </div>
+    <div class="table-wrap" id="contactWrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="cb-col"><input type="checkbox" id="cCheckAll" onchange="toggleAllContacts(this.checked)"></th>
+            <th>门店代码</th><th>门店名称</th><th>市</th><th>区</th><th>小区/区域</th>
+            <th>门店状态</th><th>二级渠道</th><th>收货人</th><th>收货号码</th><th>收货地址</th>
+          </tr>
+        </thead>
+        <tbody id="contactBody" onclick="handleContactClick(event)" onchange="handleContactChange(event)"></tbody>
+      </table>
+      <div class="pager" id="contactPager"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 活动管理弹窗 -->
+<div class="modal-overlay" id="actModal">
+  <div class="modal">
+    <h3>活动管理</h3>
+    <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #e0e0e0">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
+        <div class="form-group" style="flex:2;min-width:160px">
+          <label>活动名称 *</label>
+          <input id="newActName" placeholder="如：双十一赠品活动">
+        </div>
+        <div class="form-group" style="min-width:130px">
+          <label>开始日期</label>
+          <input id="newActStart" type="date">
+        </div>
+        <div class="form-group" style="min-width:130px">
+          <label>结束日期</label>
+          <input id="newActEnd" type="date">
+        </div>
+        <button class="btn btn-primary" onclick="addActivity()" style="margin-bottom:1px">添加</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="form-group" style="flex:1;min-width:200px">
+          <label>零售通扫码名称</label>
+          <input id="newActScanName" placeholder="如：十一刮刮乐扫码">
+        </div>
+        <div class="form-group" style="flex:2;min-width:240px">
+          <label>活动规则</label>
+          <input id="newActRule" placeholder="如：到店消费满99元参与抽奖">
+        </div>
+      </div>
+    </div>
+    <div id="actEditList"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('actModal')">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- 输入下单时间弹窗 -->
+<div class="modal-overlay" id="timeModal">
+  <div class="modal" style="max-width:360px">
+    <h3>输入物流下单时间</h3>
+    <p class="hint" style="margin-bottom:14px">将按此时间生成订单编码，如 261008-14:00（同一天第二单起加 a/b/c）</p>
+    <div class="form-group">
+      <label>下单时间 *</label>
+      <input id="orderTimeInput" type="datetime-local">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('timeModal')">取消</button>
+      <button class="btn btn-primary" onclick="confirmTimeModal()">选择文件</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设置：云端同步 -->
+<div class="modal-overlay" id="syncModal">
+  <div class="modal" style="max-width:520px">
+    <h3>云端同步（Supabase）</h3>
+    <div class="form-group">
+      <label>Project URL</label>
+      <input id="syncUrl" placeholder="https://xxxxxx.supabase.co">
+    </div>
+    <div class="form-group">
+      <label>Anon Key（public）</label>
+      <input id="syncKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+    </div>
+    <div id="syncStatus" style="font-size:13px;padding:8px 10px;border-radius:6px;background:#f5f5f5;margin-bottom:10px">未配置（当前仅保存在本机浏览器）</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary btn-sm" onclick="syncTestAndSave()">测试并同步</button>
+      <details style="font-size:13px;color:#666">
+        <summary style="cursor:pointer;color:#1a73e8;font-weight:600">首次配置 4 步</summary>
+        <ol style="padding-left:20px;line-height:1.9;margin-top:8px">
+          <li>打开 <b>supabase.com</b> 注册 → <b>New Project</b>（区域选 Tokyo/Singapore）</li>
+          <li>左侧 <b>SQL Editor</b> 粘贴运行：<br>
+            <code style="display:block;background:#f0f0f0;padding:6px 8px;border-radius:4px;margin-top:4px;word-break:break-all">create table sync_kv(key text primary key, value jsonb, updated_at timestamptz default now());<br>alter table sync_kv enable row level security;<br>create policy p on sync_kv for all using(true) with check(true);</code></li>
+          <li><b>Settings → API Keys</b>：复制 Project URL 和 publishable/anon key</li>
+          <li>粘贴到上方 → 点 <b>测试并同步</b></li>
+        </ol>
+        <p style="color:#c00;margin-top:8px">⚠ 含 Key 的链接不要公开发布，私聊发给同事。</p>
+      </details>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('syncModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设置：数据备份 -->
+<div class="modal-overlay" id="backupModal">
+  <div class="modal" style="max-width:520px">
+    <h3>数据备份与环境诊断</h3>
+    <div id="envDiag" style="font-size:12px;color:#555;background:#f5f5f5;padding:8px 10px;border-radius:6px;margin-bottom:10px;line-height:1.75;word-break:break-all"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="downloadBackup()">下载数据备份.json</button>
+      <button class="btn btn-gray btn-sm" onclick="document.getElementById('backupFile').click()">从备份恢复</button>
+    </div>
+    <p style="font-size:12px;color:#999;margin-top:8px">换了浏览器/链接导致数据消失时：先配置云同步（自动恢复），或用备份文件恢复。</p>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('backupModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设置：界面编辑 -->
+<div class="modal-overlay" id="labelModal">
+  <div class="modal" style="max-width:560px">
+    <h3>界面文字自定义（管理员）</h3>
+    <div id="labelEditList"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('labelModal')">关闭</button>
+      <button class="btn btn-primary" onclick="saveLabels()">保存文字</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设置：历史物流单 -->
+<div class="modal-overlay" id="ordersModal">
+  <div class="modal" style="max-width:460px">
+    <h3>历史物流单管理（改名 / 删除）</h3>
+    <div id="manageOrderList" style="max-height:280px;overflow:auto"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('ordersModal')">关闭</button>
+    </div>
+  </div>
+</div>
+</div><!-- /appRoot -->
+<div class="load-tip" id="loadTip"><span class="load-spin" id="loadTipSpin"></span><span id="loadTipText">加载中…</span></div>
+
+<script>
+function lsSet(k,v){
+  try{localStorage.setItem(k,v);return true}
+  catch(e){
+    alert('保存失败：浏览器本地存储空间不足。\n请先导出重要数据到飞书，或删除较早的物流订单后重试。');
+    return false;
+  }
+}
+// ==================== Supabase 云同步 ====================
+let syncCfg=null, applyingRemote=false;
+const syncDirty={}, syncTimers={}, syncMeta={};
+const SYNC_KEYS=['contacts','activities','orders','labels'];
+
+function loadSyncCfg(){
+  try{
+    if(typeof location!=='undefined'&&location.search){
+      const sb=new URLSearchParams(location.search).get('sb');
+      if(sb){
+        const dec=atob(sb), i=dec.indexOf('|');
+        if(i>0){
+          syncCfg={url:dec.slice(0,i).replace(/\/$/,''),key:dec.slice(i+1)};
+          try{localStorage.setItem('lg2_sync_cfg',JSON.stringify(syncCfg))}catch(e){}
+          return;
+        }
+      }
+    }
+  }catch(e){}
+  try{syncCfg=JSON.parse(localStorage.getItem('lg2_sync_cfg')||'null')}catch(e){}
+}
+function saveSyncCfg(){try{syncCfg?localStorage.setItem('lg2_sync_cfg',JSON.stringify(syncCfg)):localStorage.removeItem('lg2_sync_cfg')}catch(e){}}
+function loadSyncMeta(){try{Object.assign(syncMeta,JSON.parse(localStorage.getItem('lg2_sync_meta')||'{}'))}catch(e){}}
+function saveSyncMeta(){try{localStorage.setItem('lg2_sync_meta',JSON.stringify(syncMeta))}catch(e){}}
+
+function syncHeaders(){return{'Content-Type':'application/json','apikey':syncCfg.key,'Authorization':'Bearer '+syncCfg.key}}
+function syncStatus(msg,ok){
+  const el=document.getElementById('syncStatus'), dot=document.getElementById('syncDot');
+  if(el)el.innerHTML=msg;
+  if(dot){
+    dot.textContent=ok==='ok'?'☁ 已同步':ok==='err'?'☁ 同步异常':'☁ 同步中…';
+    dot.style.color=ok==='ok'?'#34a853':ok==='err'?'#ffb3b3':'#fff';
+  }
+}
+async function sbFetch(path,opts){
+  if(!syncCfg)throw new Error('未配置');
+  const r=await fetch(syncCfg.url+path,Object.assign({headers:syncHeaders()},opts));
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return r;
+}
+async function sbGet(key){
+  const r=await sbFetch('/rest/v1/sync_kv?key=eq.'+encodeURIComponent(key)+'&select=value,updated_at');
+  const rows=await r.json();
+  return rows[0]||null;
+}
+async function sbPut(key,value){
+  await sbFetch('/rest/v1/sync_kv',{method:'POST',headers:Object.assign(syncHeaders(),{'Prefer':'resolution=merge-duplicates'}),body:JSON.stringify([{key,value}])});
+}
+function localValue(key){return key==='contacts'?DB.contacts:key==='activities'?DB.activities:key==='labels'?DB.labels:DB.orders}
+function applyRemote(key,value,ts,alsoPushKey){
+  applyingRemote=true;
+  try{
+    if(key==='contacts')DB.contacts=Array.isArray(value)?value:[];
+    else if(key==='activities')DB.activities=Array.isArray(value)?value:[];
+    else if(key==='labels'){DB.labels=(value&&typeof value==='object')?value:{};applyLabels()}
+    else if(key==='archive'){
+      // 旧版客户端只推 archive：本地无订单数据时迁移为物流订单
+      if(!DB.orders.length&&!Object.keys(DB.archive).length){
+        DB.archive=(value&&typeof value==='object')?value:{};
+        try{localStorage.removeItem('lg2_orders')}catch(e){}
+        migrateArchiveToOrders();
+        ensureOrderCodes();
+        restoreSfView();
+        if(alsoPushKey===undefined)alsoPushKey='orders';
+      }
+    }
+    else{DB.orders=Array.isArray(value)?value:[];ensureOrderCodes();restoreSfView()}
+  }finally{applyingRemote=false}
+  syncMeta[key]=ts;saveSyncMeta();
+  if(alsoPushKey)schedulePush(alsoPushKey);
+  refreshAll();
+}
+function schedulePush(key){
+  if(!syncCfg||applyingRemote)return;
+  syncDirty[key]=true;
+  clearTimeout(syncTimers[key]);
+  syncTimers[key]=setTimeout(()=>doPush(key),1200);
+}
+async function doPush(key){
+  if(!syncCfg||applyingRemote)return;
+  syncDirty[key]=false;
+  try{
+    await sbPut(key,localValue(key));
+    syncStatus('已同步 '+new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}),'ok');
+  }catch(e){
+    syncDirty[key]=true;
+    syncTimers[key]=setTimeout(()=>doPush(key),8000);
+    syncStatus('推送失败（8秒后重试）：'+e.message,'err');
+  }
+}
+async function syncPull(){
+  if(!syncCfg)return;
+  for(const key of SYNC_KEYS){
+    if(syncDirty[key])continue;
+    try{
+      const row=await sbGet(key);
+      if(row&&row.updated_at&&syncMeta[key]!==row.updated_at)applyRemote(key,row.value,row.updated_at);
+    }catch(e){syncStatus('拉取失败：'+e.message,'err');return}
+  }
+  if(!DB.orders.length&&!Object.keys(DB.archive).length){
+    try{
+      const arc=await sbGet('archive');
+      if(arc&&arc.updated_at&&syncMeta['archive']!==arc.updated_at)applyRemote('archive',arc.value,arc.updated_at);
+    }catch(e){}
+  }
+  syncStatus('已同步 '+new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}),'ok');
+  if(DB.contacts.length||DB.orders.length)hideDataAlert();
+}
+async function syncPushAll(force){
+  for(const k of SYNC_KEYS){if(force||syncDirty[k]){clearTimeout(syncTimers[k]);await doPush(k)}}
+}
+async function syncTestAndSave(){
+  const url=document.getElementById('syncUrl').value.trim().replace(/\/$/,'');
+  const key=document.getElementById('syncKey').value.trim();
+  if(!url||!key){syncStatus('请填写 URL 和 Key','err');return}
+  const prev=syncCfg;
+  syncCfg={url,key};
+  try{
+    await sbGet('contacts');
+    saveSyncCfg();
+    await syncPull();
+    await syncPushAll(true);
+    addLog('云同步已连接');
+    syncStatus('✓ 连接成功，已开始自动同步（每 20 秒 + 切回页面时）','ok');
+    setTimeout(()=>closeModal('syncModal'),800);
+  }catch(e){
+    syncCfg=prev;
+    syncStatus('连接失败：'+e.message+'（检查 URL / Key / 表是否已按步骤创建）','err');
+  }
+}
+// ==================== Supabase 云同步 end ====================
+
+const DB={
+  get contacts(){try{return JSON.parse(localStorage.getItem('lg2_contacts')||'[]')}catch(e){return []}},
+  set contacts(v){if(lsSet('lg2_contacts',JSON.stringify(v)))schedulePush('contacts')},
+  get archive(){try{return JSON.parse(localStorage.getItem('lg2_archive')||'{}')}catch(e){return {}}},
+  set archive(v){if(lsSet('lg2_archive',JSON.stringify(v)))schedulePush('archive')},
+  get orders(){try{return JSON.parse(localStorage.getItem('lg2_orders')||'[]')}catch(e){return []}},
+  set orders(v){if(lsSet('lg2_orders',JSON.stringify(v)))schedulePush('orders')},
+  get labels(){try{return JSON.parse(localStorage.getItem('lg2_labels')||'{}')}catch(e){return {}}},
+  set labels(v){if(lsSet('lg2_labels',JSON.stringify(v)))schedulePush('labels')},
+  get activities(){try{return JSON.parse(localStorage.getItem('lg2_activities')||'null')||initDefaultActivities()}catch(e){return initDefaultActivities()}},
+  set activities(v){if(lsSet('lg2_activities',JSON.stringify(v)))schedulePush('activities')},
+  get logs(){try{return JSON.parse(localStorage.getItem('lg2_logs')||'[]')}catch(e){return []}},
+  set logs(v){lsSet('lg2_logs',JSON.stringify(v))},
+};
+
+function initDefaultActivities(){
+  const d=[
+    {id:'a1',name:'10.1-10.7加企微参与刮刮乐',startDate:'2026-10-01',endDate:'2026-10-07'},
+    {id:'a2',name:'10.1-10.3 3C门店任意消费送品茗杯',startDate:'2026-10-01',endDate:'2026-10-03'},
+    {id:'a3',name:'十一气球雨',startDate:'2026-10-03',endDate:'2026-10-04'},
+    {id:'a4',name:'10.1-10.3汽车门店留资送品茗杯',startDate:'2026-10-01',endDate:'2026-10-03'},
+    {id:'a5',name:'10.1-10.7加企微送茶礼',startDate:'2026-10-01',endDate:'2026-10-07'},
+  ];
+  DB.activities=d;return d;
+}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function addLog(msg){const l=DB.logs;l.unshift({msg,time:new Date().toLocaleString('zh-CN')});if(l.length>50)l.length=50;DB.logs=l;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function cleanStr(s){return String(s||'').replace(/[\u0000-\u001f\u007f-\u009f\u200b\u200c\u200d\u200e\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff\u00ad\u180e]/g,'').replace(/\s+/g,'').trim()}
+function cleanPhone(s){return String(s||'').replace(/\D/g,'')}
+function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.page===name));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
+  if(name==='import'){
+    if(sfData.length){renderMatchInfo();renderPreview();updateSelCount()}
+  }
+  else if(name==='dashboard')renderDashboard();
+  else if(name==='contacts')renderContacts();
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.page)));
+function openActModal(){renderActEditList();document.getElementById('actModal').classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+
+// ==================== 联系人 ====================
+let cPage=1,cFilter='',cPageSize=50;
+let cDebounce=debounce(v=>{cFilter=v;cPage=1;renderContacts()},300);
+
+function textW(s){let n=0;for(const ch of String(s||''))n+=ch.charCodeAt(0)>0x2e7f?2:1;return n}
+
+function fitContactCols(){
+  const rows=document.querySelectorAll('#contactBody tr');
+  if(!rows.length)return;
+  const cols=rows[0].children.length;
+  const maxs=new Array(cols).fill(0);
+  rows.forEach(tr=>{
+    for(let i=0;i<tr.children.length;i++){
+      const el=tr.children[i].querySelector('input,select');
+      if(!el||el.type==='checkbox')continue;
+      let w;
+      if(el.tagName==='SELECT')w=Math.max(...[...el.options].map(o=>textW(o.text)));
+      else w=Math.max(textW(el.value),textW(el.placeholder));
+      if(w>maxs[i])maxs[i]=w;
+    }
+  });
+  rows.forEach(tr=>{
+    for(let i=0;i<tr.children.length;i++){
+      const el=tr.children[i].querySelector('input,select');
+      if(!el||el.type==='checkbox')continue;
+      el.style.width=Math.max(maxs[i]+2,7)+'ch';
+    }
+  });
+}
+
+function renderContacts(){
+  const body=document.getElementById('contactBody');
+  const all=DB.contacts;
+  let dirty=false;
+  all.forEach(r=>{if(!r.id){r.id=uid();dirty=true}});
+  if(dirty)DB.contacts=all;
+  let list=all;
+  if(cFilter){const kw=cFilter.toLowerCase();list=all.filter(r=>Object.values(r).some(v=>String(v||'').toLowerCase().includes(kw)))}
+  const total=list.length;
+  const pages=Math.max(1,Math.ceil(total/cPageSize));
+  if(cPage>pages)cPage=pages;
+  const start=(cPage-1)*cPageSize;
+  const slice=list.slice(start,start+cPageSize);
+
+  if(!total){
+    body.innerHTML='<tr><td colspan="11"><div class="empty">暂无联系人，点击"新增行"添加</div></td></tr>';
+    document.getElementById('contactPager').innerHTML='';
+    return;
+  }
+
+  body.innerHTML=slice.map(r=>{
+    return `<tr data-id="${esc(r.id||'')}">
+      <td class="cb-col"><input type="checkbox" class="c-cb" data-id="${esc(r.id||'')}"></td>
+      <td><input data-f="storeCode" value="${esc(r.storeCode)}" placeholder="代码"></td>
+      <td><input data-f="storeName" value="${esc(r.storeName)}" placeholder="门店名称"></td>
+      <td><input data-f="city" value="${esc(r.city)}" placeholder="市"></td>
+      <td><input data-f="district" value="${esc(r.district)}" placeholder="区"></td>
+      <td><input data-f="area" value="${esc(r.area)}" placeholder="小区/区域"></td>
+      <td><select data-f="status"><option ${r.status==='营业中'?'selected':''}>营业中</option><option ${r.status==='装修中'?'selected':''}>装修中</option><option ${r.status==='暂停营业'?'selected':''}>暂停营业</option><option ${r.status==='已关闭'?'selected':''}>已关闭</option></select></td>
+      <td><select data-f="channel"><option ${r.channel==='直营'?'selected':''}>直营</option><option ${r.channel==='授权店'?'selected':''}>授权店</option><option ${r.channel==='加盟'?'selected':''}>加盟</option><option ${r.channel==='合作'?'selected':''}>合作</option></select></td>
+      <td><input data-f="recipient" value="${esc(r.recipient)}" placeholder="收货人"></td>
+      <td><input data-f="phone" value="${esc(r.phone)}" placeholder="号码"></td>
+      <td><input data-f="address" value="${esc(r.address)}" placeholder="收货地址"></td>
+    </tr>`;
+  }).join('');
+  fitContactCols();
+
+  let pager='';
+  if(pages>1){
+    pager=`<button ${cPage<=1?'disabled':''} onclick="cPageGo(${cPage-1})">上一页</button>
+    <span>${cPage} / ${pages}（共${total}条）</span>
+    <button ${cPage>=pages?'disabled':''} onclick="cPageGo(${cPage+1})">下一页</button>`;
+  }else{
+    pager=`<span>共${total}条</span>`;
+  }
+  document.getElementById('contactPager').innerHTML=pager;
+}
+
+function cPageGo(p){cPage=p;renderContacts()}
+
+function handleContactClick(e){
+  if(e.target.type==='checkbox'&&e.target.classList.contains('c-cb'))return;
+}
+function handleContactChange(e){
+  const el=e.target;
+  const f=el.dataset.f;
+  if(!f)return;
+  const tr=el.closest('tr');
+  if(!tr)return;
+  const id=tr.dataset.id;
+  const c=DB.contacts;
+  const target=c.find(x=>String(x.id)===id);
+  if(target){target[f]=el.value;DB.contacts=c;}
+}
+
+function addContactRow(){
+  const c=DB.contacts;
+  c.push({id:uid(),storeCode:'',storeName:'',city:'',district:'',area:'',status:'营业中',channel:'直营',recipient:'',phone:'',address:''});
+  DB.contacts=c;
+  cFilter='';document.getElementById('contactSearch').value='';
+  const pages=Math.ceil(c.length/cPageSize);
+  cPage=pages;renderContacts();
+}
+
+function toggleAllContacts(checked){document.querySelectorAll('.c-cb').forEach(cb=>cb.checked=checked)}
+
+function deleteSelectedContacts(){
+  const checked=[...document.querySelectorAll('.c-cb:checked')];
+  if(!checked.length){alert('请先勾选要删除的行');return}
+  const ids=checked.map(cb=>cb.dataset.id).filter(Boolean);
+  if(!ids.length){alert('勾选行缺少标识，请刷新页面后重试');return}
+  if(!confirm('确定删除选中的 '+ids.length+' 条联系人？'))return;
+  const c=DB.contacts.filter(x=>!ids.includes(String(x.id)));
+  DB.contacts=c;addLog('删除 '+ids.length+' 条联系人');refreshAll();
+}
+
+document.getElementById('contactSearch').addEventListener('input',e=>cDebounce(e.target.value));
+const CONTACT_ALIASES={storeCode:['门店代码','门店编码','编码'],storeName:['门店名称','门店名','名称'],city:['市','城市'],district:['区','区县'],area:['小区','小区/区域','区域'],status:['门店状态','状态'],channel:['二级渠道','渠道'],recipient:['收货人','联系人','收件人'],phone:['收货号码','电话','手机','号码','收件手机'],address:['收货地址','地址','收件地址']};
+function mapContactRow(headers,row){
+  const map={};
+  for(const[k,ns]of Object.entries(CONTACT_ALIASES)){const idx=headers.findIndex(h=>ns.some(n=>h.includes(n)));if(idx>=0)map[k]=idx}
+  const g=k=>map[k]!==undefined?String(row[map[k]]==null?'':row[map[k]]).trim():'';
+  const sc=g('storeCode'),sn=g('storeName');
+  if(!sc&&!sn)return null;
+  return {id:uid(),storeCode:sc,storeName:sn,city:g('city'),district:g('district'),area:g('area'),status:g('status')||'营业中',channel:g('channel')||'直营',recipient:g('recipient'),phone:g('phone'),address:g('address')};
+}
+document.getElementById('contactFile').addEventListener('change',function(e){
+  const file=e.target.files[0];if(!file)return;
+  if(typeof XLSX==='undefined'){alert('Excel 解析库未加载，请联网后刷新页面重试');e.target.value='';return}
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+      if(rows.length<2){alert('文件为空');return}
+      const headers=rows[0].map(h=>String(h).trim());
+      const contacts=[];let added=0;
+      for(let i=1;i<rows.length;i++){
+        const row=rows[i];if(!row||!row.length)continue;
+        const c=mapContactRow(headers,row);
+        if(!c)continue;
+        contacts.push(c);added++;
+      }
+      if(contacts.length){
+        if(confirm('导入 '+added+' 条联系人，是否覆盖现有数据？\n确定=覆盖，取消=追加')){
+          DB.contacts=contacts;
+        }else{DB.contacts=[...DB.contacts,...contacts]}
+      }
+      addLog('导入联系人 '+added+' 条');refreshAll();
+    }catch(err){alert('解析失败：'+err.message)}
+  };
+  reader.readAsArrayBuffer(file);e.target.value='';
+});
+
+function exportContacts(){
+  if(typeof XLSX==='undefined'){alert('Excel 库未加载，请联网后刷新页面重试');return}
+  const c=DB.contacts;if(!c.length){alert('无数据');return}
+  const data=c.map(r=>({'门店代码':r.storeCode,'门店名称':r.storeName,'市':r.city,'区':r.district,'小区/区域':r.area,'门店状态':r.status,'二级渠道':r.channel,'收货人':r.recipient,'收货号码':r.phone,'收货地址':r.address}));
+  const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'联系人');XLSX.writeFile(wb,'联系人导出.xlsx');
+  addLog('导出联系人');
+}
+
+// ==================== 活动管理 ====================
+function renderActEditList(){
+  const acts=DB.activities;
+  document.getElementById('actEditList').innerHTML=acts.map((a,i)=>`
+    <div style="padding:8px 0;border-bottom:1px solid #f0f0f0">
+      <div class="act-edit-row" style="border:none;padding-bottom:4px">
+        <input type="text" value="${esc(a.name)}" onchange="DB.activities[${i}].name=this.value;DB.activities=DB.activities;refreshAll()" placeholder="活动名称" title="活动名称">
+        <input type="date" value="${a.startDate||''}" onchange="DB.activities[${i}].startDate=this.value;DB.activities=DB.activities" title="开始日期">
+        <input type="date" value="${a.endDate||''}" onchange="DB.activities[${i}].endDate=this.value;DB.activities=DB.activities" title="结束日期">
+        <button class="btn btn-sm btn-danger" onclick="if(confirm('删除该活动？')){DB.activities=DB.activities.filter((_,j)=>j!==${i});DB.activities=DB.activities;renderActEditList();refreshAll()}">删</button>
+      </div>
+      <div class="act-edit-row" style="border:none;padding-top:0">
+        <input type="text" value="${esc(a.scanName||'')}" onchange="DB.activities[${i}].scanName=this.value;DB.activities=DB.activities" placeholder="零售通扫码名称" style="font-size:12px">
+        <input type="text" value="${esc(a.rule||'')}" onchange="DB.activities[${i}].rule=this.value;DB.activities=DB.activities" placeholder="活动规则" style="font-size:12px">
+      </div>
+    </div>
+  `).join('')||'<div style="color:#aaa;font-size:13px;padding:10px 0">暂无活动</div>';
+}
+
+function addActivity(){
+  const name=document.getElementById('newActName').value.trim();
+  const sd=document.getElementById('newActStart').value;
+  const ed=document.getElementById('newActEnd').value;
+  const scanName=document.getElementById('newActScanName').value.trim();
+  const rule=document.getElementById('newActRule').value.trim();
+  if(!name){alert('请输入活动名称');return}
+  if(!sd||!ed){alert('请选择起止日期');return}
+  if(ed<sd){alert('结束日期不能早于开始日期');return}
+  const acts=DB.activities;
+  acts.push({id:uid(),name,startDate:sd,endDate:ed,scanName,rule});
+  DB.activities=acts;
+  document.getElementById('newActName').value='';
+  document.getElementById('newActStart').value='';
+  document.getElementById('newActEnd').value='';
+  document.getElementById('newActScanName').value='';
+  document.getElementById('newActRule').value='';
+  addLog('新建活动：'+name);
+  renderActEditList();refreshAll();
+}
+
+function refreshBatchActSelect(){
+  const sel=document.getElementById('batchActSelect');
+  const acts=DB.activities;
+  sel.innerHTML='<option value="">-- 选择活动 --</option>'+acts.map(a=>{
+    const label=a.startDate?a.name+'（'+a.startDate+' ~ '+a.endDate+'）':a.name;
+    return `<option value="${esc(a.name)}">${esc(label)}</option>`;
+  }).join('');
+}
+
+function batchApplyActivity(){
+  const actName=document.getElementById('batchActSelect').value;
+  if(!actName){alert('请先选择活动');return}
+  const checked=[...document.querySelectorAll('.p-cb:checked')];
+  if(!checked.length){alert('请先勾选要应用的行');return}
+  checked.forEach(cb=>{
+    const i=parseInt(cb.dataset.i);
+    if(sfData[i])sfData[i].activity=actName;
+  });
+  addLog('批量设置活动「'+actName+'」到 '+checked.length+' 条');
+  persistSf();
+  renderPreview();updateSelCount();renderOrderSelect();
+}
+
+function toggleCheckAll(checked){
+  document.querySelectorAll('.p-cb').forEach(cb=>cb.checked=checked);
+  updateSelCount();
+}
+function updateSelCount(){
+  const n=document.querySelectorAll('.p-cb:checked').length;
+  document.getElementById('selCount').textContent=n?`已选 ${n} 条`:'';
+}
+
+// ==================== 物流管理 ====================
+let sfData=[];
+let sfYM='';
+let currentOrderId='';
+
+function currentYM(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+
+// ---------- 物流订单 ----------
+function migrateArchiveToOrders(){
+  try{if(localStorage.getItem('lg2_orders')!==null)return}catch(e){}
+  let arch={};try{arch=JSON.parse(localStorage.getItem('lg2_archive')||'{}')}catch(e){}
+  const keys=Object.keys(arch).filter(k=>arch[k]&&arch[k].length).sort();
+  const orders=keys.map(k=>({id:'mig-'+k,name:k+' 月度归档',ym:k,createdAt:k+'-01T00:00:00',rows:arch[k]}));
+  lsSet('lg2_orders',JSON.stringify(orders));
+}
+function findOrder(id){return DB.orders.find(o=>o.id===id)}
+function saveCurrentOrderId(){try{currentOrderId?localStorage.setItem('lg2_current_order',currentOrderId):localStorage.removeItem('lg2_current_order')}catch(e){}}
+function orderActivities(o){return [...new Set((o.rows||[]).map(r=>r.activity).filter(Boolean))]}
+function orderSortVal(o){return String(o.code||'')+' '+String(o.ym||'')+' '+String(o.createdAt||'')}
+function orderCodeFromTime(v){
+  let d=v?new Date(v):new Date();
+  if(isNaN(d))d=new Date();
+  const p=n=>String(n).padStart(2,'0');
+  return String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+':'+p(d.getMinutes());
+}
+function genOrderCode(base,pool){
+  const used=new Set(pool.filter(o=>o.code).map(o=>o.code));
+  if(!used.has(base))return base;
+  for(let i=0;i<26;i++){const c=base+String.fromCharCode(97+i);if(!used.has(c))return c}
+  return base+'-'+uid();
+}
+function ensureOrderCodes(){
+  const orders=DB.orders;
+  const missing=orders.filter(o=>!o.code);
+  if(!missing.length)return;
+  missing.sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||'')));
+  for(const o of missing){
+    const src=o.orderTime||o.createdAt||(o.ym?o.ym+'-01T00:00':'');
+    const d=new Date(src);
+    const base=isNaN(d)?'未知时间':orderCodeFromTime(src);
+    o.code=genOrderCode(base,orders);
+  }
+  DB.orders=orders;
+}
+function createOrder(orderTime){
+  const ym=(orderTime||'').slice(0,7)||currentYM();
+  const o={id:uid(),name:'',code:genOrderCode(orderCodeFromTime(orderTime),DB.orders),ym:ym,createdAt:new Date().toISOString(),orderTime:orderTime||'',rows:[]};
+  o.name=o.code;
+  const orders=DB.orders;orders.push(o);DB.orders=orders;
+  currentOrderId=o.id;saveCurrentOrderId();
+  return o;
+}
+function resolveOrderForUpload(orderTime){
+  let ord=currentOrderId?findOrder(currentOrderId):null;
+  if(ord&&ord.rows&&ord.rows.length)ord=null;
+  if(!ord){
+    ord=createOrder(orderTime);
+  }else{
+    const orders=DB.orders;
+    const t=orders.find(x=>x.id===ord.id);
+    if(t){
+      const oldCode=t.code||'';
+      t.orderTime=orderTime||t.orderTime||'';
+      t.code=genOrderCode(orderCodeFromTime(t.orderTime),orders.filter(x=>x.id!==t.id));
+      t.ym=(t.orderTime||'').slice(0,7)||t.ym;
+      if(!t.name||t.name===oldCode)t.name=t.code;
+      DB.orders=orders;
+      ord=t;
+    }
+  }
+  return ord;
+}
+function bindOrder(o){
+  currentOrderId=o?o.id:'';
+  saveCurrentOrderId();
+  sfData=o?(o.rows||[]):[];
+  sfYM=o?(o.ym||''):'';
+  const has=sfData.length>0;
+  document.getElementById('importResult').style.display=has?'block':'none';
+  document.getElementById('batchRow').style.display=has?'flex':'none';
+  if(has)refreshBatchActSelect();
+  applyLabels();
+}
+function switchOrder(id){
+  if(!id){renderOrderSelect();return}
+  if(id!==currentOrderId){
+    persistSf();
+    const o=findOrder(id);
+    if(!o){renderOrderSelect();return}
+    clearPFilters();
+    bindOrder(o);
+  }
+  renderMatchInfo();renderPreview();updateSelCount();
+  renderOrderSelect();
+}
+function renameOrderById(id){
+  const o=findOrder(id);
+  if(!o)return;
+  const name=prompt('备注名称（编码不变）',o.name);
+  if(name===null)return;
+  const nm=String(name).trim();
+  if(!nm||nm===o.name)return;
+  const orders=DB.orders;const t=orders.find(x=>x.id===id);if(t)t.name=nm;
+  DB.orders=orders;renderOrderSelect();renderManageOrderList();
+  addLog('物流订单改名「'+o.name+'」→「'+nm+'」');
+}
+function deleteOrderById(id){
+  const o=findOrder(id);
+  if(!o)return;
+  if(!confirm('删除物流订单「'+o.name+'」？\n其中 '+(o.rows||[]).length+' 条数据将一并删除，不可恢复。'))return;
+  DB.orders=DB.orders.filter(x=>x.id!==id);
+  addLog('删除物流订单「'+o.name+'」');
+  if(currentOrderId===id){currentOrderId='';saveCurrentOrderId();restoreSfView()}
+  else renderOrderSelect();
+  renderManageOrderList();
+}
+
+// ---------- 设置弹窗 ----------
+const LABEL_DEFS=[
+  ['appName','系统标题','市场物料到店管理系统'],
+  ['pageTitle','物流页标题','物流单号上传'],
+  ['tabImport','「物流管理」标签页','物流管理'],
+  ['tabDashboard','「月度活动汇总」标签页','月度活动汇总'],
+  ['btnContacts','「门店信息」按钮','门店信息'],
+  ['btnSettings','「设置」按钮','设置'],
+  ['btnExportCsv','「下载CSV」按钮','下载CSV'],
+  ['btnNewAct','「新建活动」按钮','新建活动'],
+  ['btnClearOrder','「清空当前单数据」按钮','清空当前单数据'],
+  ['batchActLabel','「批量设活动」标签','批量设活动：'],
+  ['btnApplySel','「应用到选中」按钮','应用到选中'],
+  ['historyLabel','「历史物流单」标签','历史物流单'],
+  ['dzTitle','上传区主文案','点击或拖拽上传顺丰回单Excel'],
+  ['dzHint','上传区提示语','支持 .xlsx / .xls / .csv；上传前需先输入物流下单时间'],
+  ['dashTitle','汇总页标题','月度活动汇总'],
+  ['dashMonthLabel','「查看月份」标签','查看月份'],
+  ['sumTitle','「市场活动汇总」标题','市场活动汇总'],
+  ['areaChartTitle','门店数图标题','各小区/区域门店数'],
+  ['crossTitle','区域计数表标题','区域活动计数'],
+  ['statAuth','「授权活动门店」指标名','授权活动门店'],
+  ['statMijia','「米家活动门店」指标名','米家活动门店'],
+  ['btnAddRow','「新增行」按钮','+ 新增行'],
+  ['btnDelSel','「删除选中」按钮','删除选中'],
+  ['btnExportContacts','门店页「导出」按钮','导出'],
+  ['btnImportContacts','门店页「导入Excel」按钮','导入Excel'],
+  ['contactHint','门店页编辑提示','点击单元格直接编辑，自动保存'],
+];
+function labelOf(key,def){const l=DB.labels;return (l&&l[key])||def}
+function applyLabels(){
+  document.querySelectorAll('[data-lk]').forEach(el=>{
+    const k=el.dataset.lk;
+    if(el.dataset.def===undefined)el.dataset.def=el.textContent;
+    const v=labelOf(k,null);
+    el.textContent=v!==null?v:el.dataset.def;
+  });
+}
+let pendingFile=null;
+let lastOrderTime='';
+function handleUploadClick(){openTimeModal(null)}
+function openTimeModal(file){
+  pendingFile=file||null;
+  const inp=document.getElementById('orderTimeInput');
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  inp.value=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+  document.getElementById('timeModal').classList.add('show');
+}
+function confirmTimeModal(){
+  const v=String(document.getElementById('orderTimeInput').value||'').trim();
+  if(!v){alert('请选择下单时间');return}
+  lastOrderTime=v;
+  closeModal('timeModal');
+  if(pendingFile){const f=pendingFile;pendingFile=null;parseSF(f,v)}
+  else document.getElementById('sfFile').click();
+}
+function toggleSetPop(e){
+  e.stopPropagation();
+  document.getElementById('setWrap').classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  const w=document.getElementById('setWrap');
+  if(w&&!w.contains(e.target))w.classList.remove('open');
+});
+function showLoading(msg,spin){
+  const el=document.getElementById('loadTip');
+  document.getElementById('loadTipText').textContent=msg;
+  document.getElementById('loadTipSpin').style.display=spin===false?'none':'';
+  el.classList.add('show');
+}
+function hideLoading(){document.getElementById('loadTip').classList.remove('show')}
+function flashTip(msg,ms){
+  showLoading(msg,false);
+  clearTimeout(window.__flashTipTimer);
+  window.__flashTipTimer=setTimeout(hideLoading,ms||2000);
+}
+function setAction(k){
+  document.getElementById('setWrap').classList.remove('open');
+  if(k==='page'){showLoading('正在刷新页面…');setTimeout(()=>location.reload(),350);return}
+  if(k==='sync'){quickSync();return}
+  openSetSection(k);
+}
+async function quickSync(){
+  if(!syncCfg){
+    showLoading('尚未配置云同步，正在打开配置…',false);
+    setTimeout(()=>{hideLoading();openSyncConfig()},700);
+    return;
+  }
+  showLoading('云端同步中…');
+  try{
+    await syncPull();
+    await syncPushAll(true);
+    addLog('手动触发云同步');
+    hideLoading();
+    flashTip('✓ 同步完成 '+new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}),2000);
+  }catch(e){
+    hideLoading();
+    flashTip('同步失败：'+e.message,3200);
+  }
+}
+function openSyncConfig(){
+  document.getElementById('syncUrl').value=syncCfg?syncCfg.url:'';
+  document.getElementById('syncKey').value=syncCfg?syncCfg.key:'';
+  const st=document.getElementById('syncStatus');
+  if(st)st.textContent=syncCfg?'已配置，点"测试并同步"可立即刷新':'未配置（仅本机保存）';
+  document.getElementById('syncModal').classList.add('show');
+}
+function openSetSection(k){
+  const show=id=>document.getElementById(id).classList.add('show');
+  if(k==='page'||k==='sync'){setAction(k);return}
+  if(k==='backup'){renderEnvDiag();show('backupModal');return}
+  if(k==='label'){renderLabelEditList();show('labelModal');return}
+  if(k==='orders'){renderManageOrderList();show('ordersModal');return}
+}
+function renderManageOrderList(){
+  const el=document.getElementById('manageOrderList');
+  const orders=DB.orders.slice().sort((a,b)=>orderSortVal(b).localeCompare(orderSortVal(a)));
+  if(!orders.length){el.innerHTML='<span class="hint">暂无物流订单</span>';return}
+  el.innerHTML=orders.map(o=>'<div class="act-edit-row">'+
+    '<span style="flex:1;font-size:13px">'+esc(orderLabel(o))+' <span class="hint">（'+(o.rows||[]).length+'条'+(o.id===currentOrderId?'，当前':'')+'）</span></span>'+
+    '<button class="btn btn-gray btn-sm" onclick="renameOrderById(\''+o.id+'\')">改名</button>'+
+    '<button class="btn btn-gray btn-sm" style="color:#ea4335" onclick="deleteOrderById(\''+o.id+'\')">删除</button>'+
+  '</div>').join('');
+}
+function renderLabelEditList(){
+  const el=document.getElementById('labelEditList');
+  const labels=DB.labels||{};
+  el.innerHTML=LABEL_DEFS.map(d=>'<div class="act-edit-row">'+
+    '<span style="width:150px;font-size:13px;color:#555">'+d[1]+'</span>'+
+    '<input type="text" class="lbl-in" data-lk-edit="'+d[0]+'" value="'+esc(labels[d[0]]||'')+'" placeholder="'+esc(d[2])+'">'+
+  '</div>').join('');
+}
+function saveLabels(){
+  const labels={};
+  document.querySelectorAll('[data-lk-edit]').forEach(i=>{
+    const v=String(i.value||'').trim();
+    if(v)labels[i.dataset.lkEdit]=v;
+  });
+  DB.labels=labels;
+  applyLabels();
+  addLog('更新界面文字');
+  alert('界面文字已保存');
+}
+function renderOrderSelect(){
+  const sel=document.getElementById('orderSelect');
+  if(!sel)return;
+  const orders=DB.orders.slice().sort((a,b)=>orderSortVal(b).localeCompare(orderSortVal(a)));
+  if(!orders.length){sel.innerHTML='<option value="">（暂无历史物流单）</option>';return}
+  sel.innerHTML=orders.map(orderOpt).join('');
+  if(currentOrderId&&findOrder(currentOrderId))sel.value=currentOrderId;
+}
+function orderLabel(o){
+  const code=o.code||'';
+  const nm=(o.name&&o.name!==code)?' · '+o.name:'';
+  return (code||o.name||'未命名')+nm;
+}
+function orderOpt(o){
+  return '<option value="'+o.id+'"'+(o.id===currentOrderId?' selected':'')+'>'+esc(orderLabel(o))+'（'+(o.rows||[]).length+'条）</option>';
+}
+function persistSf(){
+  if(!currentOrderId)return;
+  const orders=DB.orders;
+  const i=orders.findIndex(o=>o.id===currentOrderId);
+  if(i<0)return;
+  orders[i].rows=sfData;
+  if(sfYM)orders[i].ym=sfYM;
+  DB.orders=orders;
+}
+
+const dropZone=document.getElementById('dropZone');
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('dragover')});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('dragover');if(e.dataTransfer.files[0])openTimeModal(e.dataTransfer.files[0])});
+document.getElementById('sfFile').addEventListener('change',function(e){if(e.target.files[0])parseSF(e.target.files[0],lastOrderTime);e.target.value=''});
+
+function detectYM(rows,ci,fallback){
+  if(ci.date<0)return fallback;
+  for(let i=1;i<rows.length;i++){
+    const row=rows[i];if(!row)continue;
+    const v=row[ci.date];
+    if(v==null||String(v).trim()==='')continue;
+    if(v instanceof Date&&!isNaN(v))return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0');
+    const s=String(v).trim();
+    const m=s.match(/(\d{4})[-/.年](\d{1,2})/);
+    if(m)return m[1]+'-'+String(parseInt(m[2],10)).padStart(2,'0');
+    if(/^\d{5}(\.\d+)?$/.test(s)){
+      const d=new Date(Math.round((parseFloat(s)-25569)*86400000));
+      if(!isNaN(d))return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
+    }
+    break;
+  }
+  return fallback;
+}
+
+function parseSF(file,orderTime){
+  if(typeof XLSX==='undefined'){alert('Excel 解析库未加载，请联网后刷新页面重试');return}
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+      if(rows.length<2){alert('文件为空');return}
+      const headers=rows[0].map(h=>String(h).trim());
+      const ci={};
+      const fc=ns=>headers.findIndex(h=>ns.some(n=>h.includes(n)));
+      ci.tracking=fc(['运单号']);ci.name=fc(['收方姓名','收件人']);
+      ci.phone=fc(['收方手机','收件手机','手机']);ci.address=fc(['收件地址','收货地址','地址']);
+      ci.productCode=fc(['商品编码','商品编号','物料代码']);ci.productName=fc(['商品名称','物料名称']);
+      ci.qty=fc(['发货/出库数量','出库数量','发货数量','数量']);
+      ci.date=fc(['数据创建时间','创建时间','下单时间','日期']);
+      if(ci.tracking<0){alert('未找到"运单号"列');return}
+      sfData=[];
+      for(let i=1;i<rows.length;i++){
+        const row=rows[i];if(!row||!row.length)continue;
+        const g=k=>ci[k]>=0?String(row[ci[k]]||'').trim():'';
+        const tracking=g('tracking');if(!tracking)continue;
+        sfData.push({tracking,name:g('name'),phone:g('phone'),address:g('address'),productCode:g('productCode'),productName:g('productName'),qty:parseFloat(g('qty'))||0,matchedStore:'',activity:''});
+      }
+      if(!sfData.length){alert('未读取到有效数据');return}
+      const ord=resolveOrderForUpload(orderTime||lastOrderTime);
+      const ot=ord.orderTime||orderTime||lastOrderTime||'';
+      sfYM=ot?ot.slice(0,7):detectYM(rows,ci,currentYM());
+      clearPFilters();
+      matchAll();
+      persistSf();
+      document.getElementById('importResult').style.display='block';
+      document.getElementById('batchRow').style.display='flex';
+      refreshBatchActSelect();
+      renderMatchInfo();renderPreview();updateSelCount();
+      renderOrderSelect();
+      addLog('导入顺丰回单 '+sfData.length+' 条（'+orderLabel(ord)+'）');
+    }catch(err){alert('解析失败：'+err.message)}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function matchAll(){
+  const prepared=DB.contacts.map(c=>({c,a:cleanStr(c.address),p:cleanPhone(c.phone)}));
+  for(const row of sfData){
+    row.matchedStore='';
+    const rA=cleanStr(row.address),rP=cleanPhone(row.phone);
+    if(!rA&&!rP)continue;
+    let best=null;
+    for(const k of prepared){
+      const pOk=!rP||!k.p||rP===k.p;
+      const aOk=rA&&k.a&&(rA.includes(k.a)||k.a.includes(rA));
+      if(pOk&&aOk){best=k.c;break}
+    }
+    if(!best&&rA){for(const k of prepared){if(k.a&&rA.includes(k.a)){best=k.c;break}}}
+    if(!best&&rP){for(const k of prepared){if(k.p&&rP===k.p){best=k.c;break}}}
+    if(best)row.matchedStore=best.storeName;
+  }
+}
+
+function renderMatchInfo(){
+  const total=sfData.length;
+  const matched=sfData.filter(r=>r.matchedStore).length;
+  const withAct=sfData.filter(r=>r.activity).length;
+  document.getElementById('matchInfo').innerHTML=`
+    <div class="item"><span class="num">${total}</span><span class="lbl">总记录</span></div>
+    <div class="item ok"><span class="num">${matched}</span><span class="lbl">已匹配</span></div>
+    <div class="item warn"><span class="num">${total-matched}</span><span class="lbl">未匹配</span></div>
+    <div class="item"><span class="num">${withAct}</span><span class="lbl">已设活动</span></div>`;
+}
+
+// ==================== Excel式表头筛选 ====================
+const pFilters={};
+let xfPop=null;
+
+function storeCodeOf(name){
+  if(!name)return '';
+  const c=DB.contacts.find(x=>x.storeName===name);
+  return c?(c.storeCode||''):'';
+}
+function pfColVal(r,col){
+  if(col==='qty')return String(r.qty);
+  if(col==='storeCode')return storeCodeOf(r.matchedStore);
+  if(col==='matchedStore')return r.matchedStore||'';
+  if(col==='activity')return r.activity||'';
+  return String(r[col]||'');
+}
+function pfKey(v){return v===''?'__BLANK__':v}
+function pfLabel(col,k){
+  if(k!=='__BLANK__')return k;
+  return (col==='matchedStore'||col==='storeCode')?'（空白 · 未匹配）':'（空白）';
+}
+function clearPFilters(){for(const k in pFilters)delete pFilters[k];updateFilterMarks()}
+
+function updateFilterMarks(){
+  document.querySelectorAll('#previewHead th[data-col]').forEach(th=>{
+    const active=pFilters[th.dataset.col];
+    th.classList.toggle('filtered',!!active);
+    th.title=active?('已筛选 '+active.size+' 项，点击修改'):'点击筛选';
+  });
+}
+
+function closeXFilter(){if(xfPop){xfPop.remove();xfPop=null}}
+
+function toggleXFilter(e,col){
+  e.stopPropagation();
+  if(xfPop&&xfPop.dataset.col===col){closeXFilter();return}
+  closeXFilter();
+  if(!sfData.length)return;
+  const seen=new Set();
+  for(const r of sfData)seen.add(pfKey(pfColVal(r,col)));
+  const allKeys=[...seen];
+  const idxOf=new Map(allKeys.map((k,i)=>[k,i]));
+  const cur=pFilters[col];
+  let tmp=new Set(cur?[...cur]:allKeys);
+  const th=e.currentTarget.getBoundingClientRect();
+  const pop=document.createElement('div');
+  pop.className='xf-popup';pop.dataset.col=col;
+  pop.style.left=Math.max(8,Math.min(th.left,innerWidth-256))+'px';
+  pop.style.top=(th.bottom+4)+'px';
+  pop.innerHTML=`
+    <input type="text" class="xf-search" placeholder="搜索（共${allKeys.length}项）">
+    <div class="xf-top"><label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" class="xf-all"${tmp.size===allKeys.length?' checked':''}> 全选/清空</label>
+    <span style="margin-left:auto;color:#1a73e8" class="xf-count">${tmp.size}/${allKeys.length}</span></div>
+    <div class="xf-list"></div>
+    <div class="xf-btns"><button class="clr">清除筛选</button><button class="ok">确定</button></div>`;
+  document.body.appendChild(pop);
+  const list=pop.querySelector('.xf-list');
+  const search=pop.querySelector('.xf-search');
+  function renderList(){
+    const q=search.value.toLowerCase();
+    const items=allKeys.filter(k=>!q||pfLabel(col,k).toLowerCase().includes(q));
+    if(!items.length){list.innerHTML='<div class="xf-empty">无匹配项</div>';return}
+    list.innerHTML=items.slice(0,300).map(k=>
+      `<label title="${esc(pfLabel(col,k))}"><input type="checkbox" data-i="${idxOf.get(k)}"${tmp.has(k)?' checked':''}><span>${esc(pfLabel(col,k))}</span></label>`
+    ).join('')+(items.length>300?'<div class="xf-empty">仅显示前300项，请搜索缩小范围</div>':'');
+  }
+  function syncCount(){
+    pop.querySelector('.xf-count').textContent=tmp.size+'/'+allKeys.length;
+    pop.querySelector('.xf-all').checked=(tmp.size===allKeys.length);
+  }
+  renderList();
+  search.addEventListener('input',renderList);
+  list.addEventListener('change',ev=>{
+    const cb=ev.target;if(cb.type!=='checkbox')return;
+    const k=allKeys[+cb.dataset.i];
+    if(cb.checked)tmp.add(k);else tmp.delete(k);
+    syncCount();
+  });
+  pop.querySelector('.xf-all').addEventListener('change',ev=>{
+    tmp=ev.target.checked?new Set(allKeys):new Set();
+    renderList();syncCount();
+  });
+  pop.querySelector('.ok').addEventListener('click',()=>{
+    if(tmp.size===allKeys.length)delete pFilters[col];
+    else pFilters[col]=tmp;
+    closeXFilter();renderPreview();updateFilterMarks();updateSelCount();
+  });
+  pop.querySelector('.clr').addEventListener('click',()=>{
+    delete pFilters[col];
+    closeXFilter();renderPreview();updateFilterMarks();updateSelCount();
+  });
+  xfPop=pop;
+}
+
+document.addEventListener('mousedown',ev=>{
+  if(!xfPop)return;
+  if(xfPop.contains(ev.target))return;
+  if(ev.target.closest&&ev.target.closest('#previewHead th[data-col]'))return;
+  closeXFilter();
+});
+document.querySelectorAll('#previewHead th[data-col]').forEach(th=>{
+  th.addEventListener('click',e=>toggleXFilter(e,th.dataset.col));
+});
+
+function renderStoreOpts(){
+  document.getElementById('storeOpts').innerHTML=DB.contacts.map(c=>`<option value="${esc(c.storeName)}"></option>`).join('');
+}
+
+function renderPreview(){
+  const body=document.getElementById('previewBody');
+  const acts=DB.activities;
+  renderStoreOpts();
+  const orphanActs=[...new Set(sfData.map(r=>r.activity).filter(Boolean))].filter(n=>!acts.some(a=>a.name===n));
+  const allActs=[...acts,...orphanActs.map(n=>({name:n}))];
+  const actOpts='<option value="">-- 选择 --</option>'+allActs.map(a=>`<option value="${esc(a.name)}"${orphanActs.includes(a.name)?' style="color:#f9ab00"':''}>${esc(a.name)}${orphanActs.includes(a.name)?'（已删除）':''}</option>`).join('');
+
+  const activeCols=Object.keys(pFilters);
+  let shown=0;
+  body.innerHTML=sfData.map((r,i)=>{
+    if(activeCols.length){
+      for(const col of activeCols){
+        if(!pFilters[col].has(pfKey(pfColVal(r,col))))return '';
+      }
+    }
+    shown++;
+    const st=r.matchedStore?'<span class="badge badge-green">已匹配</span>':'<span class="badge badge-red">未匹配</span>';
+    const code=storeCodeOf(r.matchedStore);
+    const wP=Math.min(300,Math.max(110,textW(r.productName)*7+24));
+    const wS=Math.min(300,Math.max(150,textW(r.matchedStore||'选择或输入门店')*7+24));
+    return `<tr data-i="${i}">
+      <td class="cb-col"><input type="checkbox" class="p-cb" data-i="${i}" onchange="updateSelCount()"></td>
+      <td style="font-family:monospace;font-size:11px;white-space:nowrap">${esc(r.tracking)}</td>
+      <td><input data-f="productName" data-i="${i}" value="${esc(r.productName)}" style="font-size:12px;padding:5px 6px;width:${wP}px"></td>
+      <td style="text-align:center">${r.qty}</td>
+      <td>${esc(r.name)}</td>
+      <td style="font-size:11px">${esc(r.phone)}</td>
+      <td class="p-code" data-code="${esc(code)}">${esc(code)}</td>
+      <td class="${r.matchedStore?'cell-matched':'cell-unmatched'}">
+        <input list="storeOpts" data-f="matchedStore" data-i="${i}" value="${esc(r.matchedStore)}" placeholder="选择或输入门店" style="font-size:12px;padding:5px 6px;width:${wS}px">
+      </td>
+      <td>
+        <select data-f="activity" data-i="${i}">${actOpts.replace(`value="${esc(r.activity)}"`,`value="${esc(r.activity)}" selected`)}</select>
+      </td>
+      <td>${st}</td>
+    </tr>`;
+  }).join('');
+  if(!shown&&sfData.length){
+    body.innerHTML='<tr><td colspan="10"><div class="empty">当前筛选无匹配数据</div></td></tr>';
+  }
+}
+
+document.getElementById('previewBody').addEventListener('change',function(e){
+  const el=e.target;
+  const i=parseInt(el.dataset.i);
+  const f=el.dataset.f;
+  if(!sfData[i]||!f)return;
+  let v=el.value;
+  if(f==='matchedStore'){
+    v=v.trim();
+    if(v&&!DB.contacts.some(c=>c.storeName===v)){
+      alert('「'+v+'」不在联系人门店列表中，请先到联系人页添加');
+      el.value=sfData[i].matchedStore||'';
+      return;
+    }
+    el.value=v;
+  }
+  sfData[i][f]=v;
+  if(f==='matchedStore'){
+    renderMatchInfo();
+    const tr=el.closest('tr');
+    if(tr&&tr.children.length>=10){
+      const code=storeCodeOf(v);
+      const codeCell=tr.children[6];
+      if(codeCell){codeCell.textContent=code;codeCell.setAttribute('data-code',code)}
+      tr.children[7].className=v?'cell-matched':'cell-unmatched';
+      tr.children[9].innerHTML=v?'<span class="badge badge-green">已匹配</span>':'<span class="badge badge-red">未匹配</span>';
+      if(el.dataset){const wS=Math.min(300,Math.max(150,textW(v||'选择或输入门店')*7+24));el.style.width=wS+'px'}
+    }
+  }
+  if(f==='productName'){
+    const tr=el.closest('tr');
+    if(tr)el.style.width=Math.min(300,Math.max(110,textW(v)*7+24))+'px';
+  }
+  persistSf();
+  if(f==='activity')renderOrderSelect();
+});
+
+function handlePreviewClick(){}
+
+function clearImport(){
+  if(sfData.length&&!confirm('清空当前物流订单的数据？（订单保留为空）'))return;
+  sfData=[];clearPFilters();
+  persistSf();
+  document.getElementById('importResult').style.display='none';
+  document.getElementById('batchRow').style.display='none';
+  renderMatchInfo();renderPreview();updateSelCount();renderOrderSelect();
+  addLog('清空物流订单数据');
+}
+
+// ==================== 导出CSV ====================
+function exportCSV(){
+  if(!sfData.length){alert('暂无数据');return}
+  const headers=['物料名称','礼品所属活动','礼品数量','快递单号','门店名称','收件人姓名','收件电话','收货地址'];
+  let csv=headers.join(',')+'\n';
+  const cell=v=>{
+    let s=(v===undefined||v===null)?'':String(v);
+    if(/^[=+\-@]/.test(s)&&!/^-?\d+(\.\d+)?$/.test(s))s="'"+s;
+    return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;
+  };
+  for(const r of sfData){
+    const row={'物料名称':r.productName,'礼品所属活动':r.activity,'礼品数量':r.qty,'快递单号':r.tracking,'门店名称':r.matchedStore,'收件人姓名':r.name,'收件电话':r.phone,'收货地址':r.address};
+    csv+=headers.map(h=>cell(row[h])).join(',')+'\n';
+  }
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='飞书导入_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();URL.revokeObjectURL(a.href);
+  addLog('导出CSV '+sfData.length+' 条');
+}
+
+// ==================== 月度活动汇总 ====================
+let chartArea=null;
+
+function renderDashboard(){
+  const contacts=DB.contacts;
+  const acts=DB.activities;
+
+  const ym=currentYM();
+  const orders=DB.orders;
+  const monthOf=a=>{const d=a.endDate||a.startDate;return d?d.slice(0,7):''};
+  const monthSet=new Set(orders.filter(o=>o.rows&&o.rows.length&&o.ym).map(o=>o.ym));
+  monthSet.add(ym);
+  acts.forEach(a=>{
+    if(a.startDate)monthSet.add(a.startDate.slice(0,7));
+    const e=a.endDate||a.startDate;
+    if(e)monthSet.add(e.slice(0,7));
+  });
+  const months=[...monthSet].sort().reverse();
+  const selEl=document.getElementById('dashMonth');
+  const viewYM=months.includes(selEl.value)?selEl.value:ym;
+  selEl.innerHTML=months.map(m=>`<option value="${m}"${m===viewYM?' selected':''}>${m}</option>`).join('');
+
+  const matched=[];
+  for(const o of orders){
+    if(o.ym!==viewYM)continue;
+    const rows=o.id===currentOrderId?sfData:(o.rows||[]);
+    matched.push(...rows);
+  }
+
+  const withAct=matched.filter(r=>r.activity&&r.matchedStore);
+
+  const storeAreaMap={};
+  const storeChannelMap={};
+  for(const c of contacts){storeAreaMap[c.storeName]=c.area||'';storeChannelMap[c.storeName]=c.channel||''}
+
+  const monthActs=acts.filter(a=>monthOf(a)===viewYM);
+
+  const uniqStores=new Set(withAct.map(r=>r.matchedStore));
+  let authCount=0,mijiaCount=0;
+  for(const s of uniqStores){
+    const area=storeAreaMap[s]||'';
+    if(area.includes('授权'))authCount++;
+    else if(area.includes('专卖')||area.includes('米家'))mijiaCount++;
+    else{
+      const ch=storeChannelMap[s]||'';
+      if(ch.includes('授权'))authCount++;
+      else mijiaCount++;
+    }
+  }
+
+  const actLbl=viewYM===ym?'本月活动场次':parseInt(viewYM.slice(5),10)+'月活动场次';
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat-card"><div class="num">${monthActs.length}</div><div class="lbl">${actLbl}</div></div>
+    <div class="stat-card o"><div class="num">${authCount}</div><div class="lbl" data-lk="statAuth">授权活动门店</div></div>
+    <div class="stat-card g"><div class="num">${mijiaCount}</div><div class="lbl" data-lk="statMijia">米家活动门店</div></div>`;
+  applyLabels();
+
+  // 活动参与数据
+  const actStoreMap={};
+  const actSessionMap={};
+  for(const r of withAct){
+    if(!actStoreMap[r.activity])actStoreMap[r.activity]=new Set();
+    actStoreMap[r.activity].add(r.matchedStore);
+    actSessionMap[r.activity]=(actSessionMap[r.activity]||0)+1;
+  }
+  const dataActs=[...new Set(matched.map(r=>r.activity).filter(Boolean))];
+  const orphans=dataActs.filter(n=>!acts.some(a=>a.name===n));
+  const viewActs=[...acts.filter(a=>monthOf(a)===viewYM||dataActs.includes(a.name)),...orphans.map(n=>({name:n,startDate:'',endDate:''}))];
+  const actNames=viewActs.map(a=>a.name);
+
+  // 市场活动汇总表
+  let sumHtml='<table><thead><tr><th>活动名称</th><th>参与门店数</th><th>起止日期</th><th>零售通扫码名称</th></tr></thead><tbody>';
+  for(const a of viewActs){
+    const stores=actStoreMap[a.name]?actStoreMap[a.name].size:0;
+    const dateStr=a.startDate?`${a.startDate} ~ ${a.endDate}`:'-';
+    sumHtml+=`<tr><td>${esc(a.name)}${orphans.includes(a.name)?' <span class="badge badge-gray">已删除</span>':''}</td><td><strong>${stores}</strong></td><td style="color:#888;font-size:12px">${dateStr}</td><td style="font-size:12px">${esc(a.scanName||'-')}</td></tr>`;
+  }
+  sumHtml+='</tbody></table>';
+  document.getElementById('actSummaryBody').innerHTML=sumHtml;
+
+  // 小区门店数
+  const areaMap={};
+  for(const c of contacts){const a=c.area||'未分配';areaMap[a]=(areaMap[a]||0)+1}
+  const areaEntries=Object.entries(areaMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  const areaNames=areaEntries.map(e=>e[0]);
+  const areaCounts=areaEntries.map(e=>e[1]);
+
+  // Chart.js
+  if(typeof Chart!=='undefined'){
+    if(chartArea)chartArea.destroy();
+    const barColors=areaNames.map(n=>n.includes('授权')?'#f9ab00':(n.includes('专卖')?'#34a853':'#9aa0a6'));
+    chartArea=new Chart(document.getElementById('chartArea').getContext('2d'),{
+      type:'bar',
+      data:{labels:areaNames,datasets:[{label:'门店数',data:areaCounts,backgroundColor:barColors,borderRadius:4}]},
+      options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}},maintainAspectRatio:false}
+    });
+  }
+
+  // 交叉表
+  const areas=[...new Set(contacts.map(c=>c.area||'未分配'))].sort();
+  const crossData={};
+  for(const r of withAct){
+    const area=storeAreaMap[r.matchedStore]||'未分配';
+    const key=area+'||'+r.activity;
+    if(!crossData[key])crossData[key]=new Set();
+    crossData[key].add(r.matchedStore);
+  }
+
+  let html='<table><thead><tr><th>小区/区域</th><th class="x-total">合计</th>'+actNames.map(a=>`<th>${esc(a)}</th>`).join('')+'</tr></thead><tbody>';
+  const areaType=area=>{
+    if(area.includes('授权'))return 'auth';
+    if(area.includes('专卖')||area.includes('米家'))return 'mijia';
+    const cs=contacts.filter(c=>(c.area||'未分配')===area);
+    if(cs.length)return cs.some(c=>String(c.channel||'').includes('授权'))?'auth':'mijia';
+    return 'other';
+  };
+  for(const area of areas){
+    let rowTotal=0;
+    const cells=[];
+    for(const act of actNames){
+      const n=crossData[area+'||'+act]?crossData[area+'||'+act].size:0;
+      rowTotal+=n;
+      cells.push(`<td class="${n?'has-data':'no-data'}">${n||'-'}</td>`);
+    }
+    html+=`<tr><td class="area-${areaType(area)}">${esc(area)}</td><td style="font-weight:600">${rowTotal}</td>`+cells.join('')+'</tr>';
+  }
+  html+='</tbody></table>';
+  document.getElementById('crossTableBody').innerHTML=html;
+}
+
+// ==================== 概览 ====================
+function renderLogs(){
+  const logs=DB.logs;
+  const el=document.getElementById('logList');
+  if(!el)return;
+  if(!logs.length){el.innerHTML='<div style="color:#aaa;font-size:13px">暂无操作记录</div>';return}
+  el.innerHTML=logs.map(l=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:13px"><span>${esc(l.msg)}</span><span style="color:#999;font-size:12px">${l.time}</span></div>`).join('');
+}
+// ==================== 刷新 ====================
+function refreshAll(){
+  renderContacts();renderDashboard();renderLogs();
+}
+
+// ==================== 数据备份 / 环境诊断 ====================
+function backupPayload(){
+  return {v:1,app:'lg2',exportedAt:new Date().toISOString(),contacts:DB.contacts,orders:DB.orders,activities:DB.activities,labels:DB.labels};
+}
+function downloadBackup(){
+  try{
+    const blob=new Blob([JSON.stringify(backupPayload(),null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='门店系统备份_'+new Date().toISOString().slice(0,10)+'.json';
+    a.click();URL.revokeObjectURL(a.href);
+    addLog('下载数据备份（联系人 '+DB.contacts.length+'、物流单 '+DB.orders.length+'）');
+  }catch(e){alert('备份失败：'+e.message)}
+}
+function restoreBackup(input){
+  const f=input.files&&input.files[0];
+  if(!f)return;
+  const rd=new FileReader();
+  rd.onload=function(ev){
+    let d=null;
+    try{d=JSON.parse(ev.target.result)}catch(e){alert('文件不是有效的 JSON');return}
+    if(!d||(!Array.isArray(d.contacts)&&!Array.isArray(d.orders))){alert('不是本系统导出的备份文件');return}
+    const n=(d.contacts||[]).length,m=(d.orders||[]).length;
+    if(!confirm('恢复备份：联系人 '+n+' 条、物流单 '+m+' 条、活动 '+(d.activities||[]).length+' 个。\n将覆盖当前全部数据，确定恢复？'))return;
+    applyingRemote=true;
+    try{
+      if(Array.isArray(d.contacts))DB.contacts=d.contacts;
+      if(Array.isArray(d.orders))DB.orders=d.orders;
+      if(Array.isArray(d.activities)&&d.activities.length)DB.activities=d.activities;
+      if(d.labels&&typeof d.labels==='object')DB.labels=d.labels;
+    }finally{applyingRemote=false}
+    ensureOrderCodes();
+    if(!currentOrderId||!findOrder(currentOrderId))currentOrderId=(DB.orders[0]||{}).id||'';
+    saveCurrentOrderId();
+    restoreSfView();applyLabels();refreshAll();
+    if(syncCfg){schedulePush('contacts');schedulePush('orders');schedulePush('activities');schedulePush('labels')}
+    hideDataAlert();
+    addLog('从备份恢复：联系人 '+n+'、物流单 '+m);
+    alert('恢复完成');
+  };
+  rd.readAsText(f);
+  input.value='';
+}
+async function recoverFromCloud(){
+  if(!syncCfg){
+    alert('尚未配置云同步。\n请先在「设置 → 云端同步」填入 Supabase 的 URL 和 Key，或直接导入备份文件。');
+    openSyncConfig();
+    return;
+  }
+  try{
+    syncStatus('同步中…');
+    await syncPull();
+    if(DB.contacts.length||DB.orders.length){hideDataAlert();alert('已从云端恢复：联系人 '+DB.contacts.length+' 条、物流单 '+DB.orders.length+' 条')}
+    else alert('云端暂无数据，请用备份文件恢复。');
+  }catch(e){alert('云端恢复失败：'+e.message)}
+}
+function hideDataAlert(){const b=document.getElementById('dataAlert');if(b)b.style.display='none'}
+function checkDataEmpty(){
+  if(DB.contacts.length||DB.orders.length){hideDataAlert();return}
+  const msg=document.getElementById('dataAlertMsg');
+  if(msg)msg.textContent=syncCfg
+    ? '未检测到本地数据（可能更换了浏览器/链接），可点「从云端恢复」。'
+    : '未检测到本地数据（可能更换了浏览器/链接）。建议在设置里配置云同步，或导入之前下载的备份。';
+  const b=document.getElementById('dataAlert');
+  if(b)b.style.display='flex';
+}
+function renderEnvDiag(){
+  const el=document.getElementById('envDiag');
+  if(!el)return;
+  let bytes=0,keys=0;
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.indexOf('lg2_')===0){keys++;bytes+=(localStorage.getItem(k)||'').length}
+    }
+  }catch(e){}
+  const line=[];
+  line.push('当前地址：'+esc(location.origin+location.pathname));
+  line.push('云同步：'+(syncCfg?'<span style="color:#1e8e3e">已配置 '+esc(syncCfg.url)+'</span>':'<span style="color:#c00">未配置（数据只在本机）</span>'));
+  line.push('数据：联系人 '+DB.contacts.length+' 条 · 物流单 '+DB.orders.length+' 条 · 活动 '+DB.activities.length+' 个 · 界面文案 '+Object.keys(DB.labels||{}).length+' 条');
+  line.push('本机 localStorage：'+keys+' 个键，约 '+(bytes/1024).toFixed(1)+' KB');
+  line.push('换浏览器/换链接数据不会跟过去 —— 云同步或备份文件是唯一恢复手段。');
+  el.innerHTML=line.join('<br>');
+}
+
+// ==================== 初始化 ====================
+try{localStorage.removeItem('lg2_auth')}catch(e){}
+DB.activities=DB.activities;
+migrateArchiveToOrders();
+ensureOrderCodes();
+try{currentOrderId=localStorage.getItem('lg2_current_order')||''}catch(e){}
+function restoreSfView(){
+  const orders=DB.orders;
+  let ord=currentOrderId?orders.find(o=>o.id===currentOrderId):null;
+  if(!ord&&orders.length){
+    ord=orders.slice().sort((a,b)=>orderSortVal(b).localeCompare(orderSortVal(a)))[0];
+  }
+  if(ord){
+    clearPFilters();
+    bindOrder(ord);
+  }else{
+    clearPFilters();
+    bindOrder(null);
+  }
+  renderMatchInfo();renderPreview();updateSelCount();
+  renderOrderSelect();
+}
+restoreSfView();
+applyLabels();
+refreshAll();
+
+// 云同步：启动拉取 + 定时/回页刷新
+loadSyncCfg();loadSyncMeta();
+checkDataEmpty();
+if(syncCfg){syncStatus('同步中…');syncPull()}
+window.addEventListener('focus',()=>{if(syncCfg)syncPull()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&syncCfg)syncPull()});
+const syncIv=setInterval(()=>{if(syncCfg&&!document.hidden)syncPull()},20000);
+if(syncIv&&syncIv.unref)syncIv.unref();
+</script>
+</body>
+</html>
