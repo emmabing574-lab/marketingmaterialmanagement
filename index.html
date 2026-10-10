@@ -140,6 +140,12 @@ tr:hover{background:#f8f9fc}
 .pager button:hover{border-color:#1a73e8;color:#1a73e8}
 .pager button:disabled{opacity:.4;cursor:default}
 .cb-col{text-align:center;width:32px}
+#contactBody td.csel{background:#d2e3fc!important;box-shadow:inset 0 0 0 1px #1a73e8}
+#contactBody td.csel input{background:rgba(255,255,255,.35)}
+#contactBody td{cursor:cell;user-select:none}
+#contactBody td input{user-select:text}
+#contactWrap th[data-c]{cursor:pointer;user-select:none}
+#contactWrap th[data-c]:hover{color:#1a73e8;background:#e8f0fe}
 .filter-input{width:100%;padding:4px 6px;font-size:12px;border:1px solid #c5dafc;border-radius:4px;outline:none;background:#fff}
 .filter-input:focus{border-color:#1a73e8}
 @media(max-width:1200px){.dash-cols{grid-template-columns:1fr}}
@@ -178,7 +184,6 @@ iframe[id^="sb__open-sandbox"]{display:none!important}
   <h1 data-lk="appName">市场物料到店管理系统</h1>
   <div style="display:flex;gap:8px;align-items:center">
     <span id="syncDot" style="font-size:12px;color:rgba(255,255,255,.7)">☁ 未同步</span>
-    <button class="btn" data-lk="btnContacts" style="background:none;border:none;color:#fff" onclick="switchTab('contacts')">门店信息</button>
     <div class="set-wrap" id="setWrap">
       <button class="btn" data-lk="btnSettings" style="background:none;border:none;color:#fff" onclick="toggleSetPop(event)">设置</button>
       <div class="set-pop" id="setPop">
@@ -205,6 +210,7 @@ iframe[id^="sb__open-sandbox"]{display:none!important}
 <div class="tabs">
   <div class="tab active" data-page="import" data-lk="tabImport">物流管理</div>
   <div class="tab" data-page="dashboard" data-lk="tabDashboard">月度活动汇总</div>
+  <div class="tab" data-page="contacts" data-lk="tabContacts">门店信息</div>
 </div>
 
 <div class="content">
@@ -302,29 +308,38 @@ iframe[id^="sb__open-sandbox"]{display:none!important}
   <!-- ========== 联系人 ========== -->
   <div class="page" id="page-contacts">
     <div class="toolbar">
-      <button class="btn btn-gray" onclick="switchTab('import')">&larr; 返回</button>
-      <span style="color:#ddd">|</span>
       <button class="btn btn-primary" data-lk="btnAddRow" onclick="addContactRow()">+ 新增行</button>
       <button class="btn btn-danger" data-lk="btnDelSel" onclick="deleteSelectedContacts()">删除选中</button>
+      <button class="btn btn-outline" onclick="cCopy()">复制选中</button>
       <button class="btn btn-success" data-lk="btnExportContacts" onclick="exportContacts()">导出</button>
       <input type="file" accept=".xlsx,.xls,.csv" id="contactFile" style="display:none">
       <button class="btn btn-outline" data-lk="btnImportContacts" onclick="document.getElementById('contactFile').click()">导入Excel</button>
       <input type="text" class="search-box" id="contactSearch" placeholder="搜索门店、收货人、地址…">
-      <span style="font-size:12px;color:#999;margin-left:auto" data-lk="contactHint">点击单元格直接编辑，自动保存</span>
+      <span style="font-size:12px;color:#999;margin-left:auto" data-lk="contactHint">点击单元格编辑，拖动框选后 Ctrl+C / Ctrl+V 复制粘贴</span>
     </div>
     <div class="table-wrap" id="contactWrap">
       <table>
         <thead>
           <tr>
             <th class="cb-col"><input type="checkbox" id="cCheckAll" onchange="toggleAllContacts(this.checked)"></th>
-            <th>门店代码</th><th>门店名称</th><th>市</th><th>区</th><th>小区/区域</th>
-            <th>门店状态</th><th>二级渠道</th><th>收货人</th><th>收货号码</th><th>收货地址</th>
+            <th data-c="0" onclick="cSelColumn(event,0)">门店代码</th>
+            <th data-c="1" onclick="cSelColumn(event,1)">门店名称</th>
+            <th data-c="2" onclick="cSelColumn(event,2)">市</th>
+            <th data-c="3" onclick="cSelColumn(event,3)">区</th>
+            <th data-c="4" onclick="cSelColumn(event,4)">小区/区域</th>
+            <th data-c="5" onclick="cSelColumn(event,5)">门店状态</th>
+            <th data-c="6" onclick="cSelColumn(event,6)">二级渠道</th>
+            <th data-c="7" onclick="cSelColumn(event,7)">收货人</th>
+            <th data-c="8" onclick="cSelColumn(event,8)">收货号码</th>
+            <th data-c="9" onclick="cSelColumn(event,9)">收货地址</th>
           </tr>
         </thead>
         <tbody id="contactBody" onclick="handleContactClick(event)" onchange="handleContactChange(event)"></tbody>
       </table>
       <div class="pager" id="contactPager"></div>
     </div>
+    <datalist id="cStatusOpts"><option>营业中</option><option>装修中</option><option>暂停营业</option><option>已关闭</option></datalist>
+    <datalist id="cChannelOpts"><option>直营</option><option>授权店</option><option>加盟</option><option>合作</option></datalist>
   </div>
 
 </div>
@@ -645,7 +660,10 @@ document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click
 
 // ==================== 联系人 ====================
 let cPage=1,cFilter='',cPageSize=50;
-let cDebounce=debounce(v=>{cFilter=v;cPage=1;renderContacts()},300);
+let cList=[];
+let cSel=null,cAnchor=null,cDrag=false;
+let cDebounce=debounce(v=>{cFilter=v;cPage=1;cSel=null;renderContacts()},300);
+const CFIELDS=['storeCode','storeName','city','district','area','status','channel','recipient','phone','address'];
 
 function textW(s){let n=0;for(const ch of String(s||''))n+=ch.charCodeAt(0)>0x2e7f?2:1;return n}
 
@@ -690,22 +708,28 @@ function renderContacts(){
   if(!total){
     body.innerHTML='<tr><td colspan="11"><div class="empty">暂无联系人，点击"新增行"添加</div></td></tr>';
     document.getElementById('contactPager').innerHTML='';
+    cList=[];
     return;
   }
 
-  body.innerHTML=slice.map(r=>{
-    return `<tr data-id="${esc(r.id||'')}">
+  cList=list;
+  body.innerHTML=slice.map((r,ri)=>{
+    const vr=start+ri;
+    const statusOpts=['营业中','装修中','暂停营业','已关闭'];
+    const channelOpts=['直营','授权店','加盟','合作'];
+    const cell=(f,val,ph,list)=>`<td data-c="${CFIELDS.indexOf(f)}"><input data-f="${f}" value="${esc(val)}" placeholder="${ph}"${list?` list="${list}"`:''}></td>`;
+    return `<tr data-id="${esc(r.id||'')}" data-vr="${vr}">
       <td class="cb-col"><input type="checkbox" class="c-cb" data-id="${esc(r.id||'')}"></td>
-      <td><input data-f="storeCode" value="${esc(r.storeCode)}" placeholder="代码"></td>
-      <td><input data-f="storeName" value="${esc(r.storeName)}" placeholder="门店名称"></td>
-      <td><input data-f="city" value="${esc(r.city)}" placeholder="市"></td>
-      <td><input data-f="district" value="${esc(r.district)}" placeholder="区"></td>
-      <td><input data-f="area" value="${esc(r.area)}" placeholder="小区/区域"></td>
-      <td><select data-f="status"><option ${r.status==='营业中'?'selected':''}>营业中</option><option ${r.status==='装修中'?'selected':''}>装修中</option><option ${r.status==='暂停营业'?'selected':''}>暂停营业</option><option ${r.status==='已关闭'?'selected':''}>已关闭</option></select></td>
-      <td><select data-f="channel"><option ${r.channel==='直营'?'selected':''}>直营</option><option ${r.channel==='授权店'?'selected':''}>授权店</option><option ${r.channel==='加盟'?'selected':''}>加盟</option><option ${r.channel==='合作'?'selected':''}>合作</option></select></td>
-      <td><input data-f="recipient" value="${esc(r.recipient)}" placeholder="收货人"></td>
-      <td><input data-f="phone" value="${esc(r.phone)}" placeholder="号码"></td>
-      <td><input data-f="address" value="${esc(r.address)}" placeholder="收货地址"></td>
+      ${cell('storeCode',r.storeCode,'代码')}
+      ${cell('storeName',r.storeName,'门店名称')}
+      ${cell('city',r.city,'市')}
+      ${cell('district',r.district,'区')}
+      ${cell('area',r.area,'小区/区域')}
+      ${cell('status',r.status,'营业中','cStatusOpts')}
+      ${cell('channel',r.channel,'直营','cChannelOpts')}
+      ${cell('recipient',r.recipient,'收货人')}
+      ${cell('phone',r.phone,'号码')}
+      ${cell('address',r.address,'收货地址')}
     </tr>`;
   }).join('');
   fitContactCols();
@@ -719,6 +743,7 @@ function renderContacts(){
     pager=`<span>共${total}条</span>`;
   }
   document.getElementById('contactPager').innerHTML=pager;
+  cPaintSel();
 }
 
 function cPageGo(p){cPage=p;renderContacts()}
@@ -736,7 +761,180 @@ function handleContactChange(e){
   const c=DB.contacts;
   const target=c.find(x=>String(x.id)===id);
   if(target){target[f]=el.value;DB.contacts=c;}
+  const cur=cList.find(x=>String(x.id)===id);
+  if(cur&&cur!==target)cur[f]=el.value;
 }
+
+// ---- 多单元格选区 / 复制粘贴 ----
+function cSelNorm(){if(!cSel)return null;return{r1:Math.min(cSel.r1,cSel.r2),r2:Math.max(cSel.r1,cSel.r2),c1:Math.min(cSel.c1,cSel.c2),c2:Math.max(cSel.c1,cSel.c2)}}
+function cPaintSel(){
+  document.querySelectorAll('#contactBody td.csel').forEach(td=>td.classList.remove('csel'));
+  const s=cSelNorm();if(!s)return;
+  const trs=[...document.querySelectorAll('#contactBody tr[data-vr]')];
+  trs.forEach(tr=>{
+    const r=+tr.dataset.vr;
+    if(r<s.r1||r>s.r2)return;
+    [...tr.children].forEach(td=>{
+      const c=td.dataset.c;
+      if(c!==undefined&&+c>=s.c1&&+c<=s.c2)td.classList.add('csel');
+    });
+  });
+}
+function cClearSel(){cSel=null;cAnchor=null;cPaintSel()}
+function cCellInfo(el){
+  const td=el.closest?el.closest('td[data-c]'):null;
+  if(!td)return null;
+  const tr=td.closest('tr[data-vr]');
+  if(!tr)return null;
+  return{r:+tr.dataset.vr,c:+td.dataset.c};
+}
+function cValAt(r,c){
+  const tr=document.querySelector('#contactBody tr[data-vr="'+r+'"]');
+  if(tr){
+    const td=tr.children[c+1];
+    const el=td&&td.querySelector('input');
+    if(el)return el.value;
+  }
+  const rec=cList[r];
+  return rec?String(rec[CFIELDS[c]]||''):'';
+}
+function cSetValAt(r,c,v){
+  const rec=cList[r];
+  if(!rec)return false;
+  rec[CFIELDS[c]]=v;
+  const tr=document.querySelector('#contactBody tr[data-vr="'+r+'"]');
+  if(tr){
+    const td=tr.children[c+1];
+    const el=td&&td.querySelector('input');
+    if(el)el.value=v;
+  }
+  return true;
+}
+function cWriteBack(){
+  if(!cList.length)return;
+  const all=DB.contacts;
+  let dirty=false;
+  cList.forEach(rec=>{
+    const i=all.findIndex(x=>String(x.id)===String(rec.id));
+    if(i>=0){all[i]=rec;dirty=true}
+  });
+  if(dirty)DB.contacts=all;
+}
+function cCopy(){
+  const s=cSelNorm();
+  if(!s){flashTip('请先拖动选中单元格',1800);return}
+  const rows=[];
+  for(let r=s.r1;r<=s.r2;r++){
+    const line=[];
+    for(let c=s.c1;c<=s.c2;c++)line.push(cValAt(r,c));
+    rows.push(line.join('\t'));
+  }
+  const text=rows.join('\n');
+  const done=()=>flashTip('✓ 已复制 '+rows.length+' 行 × '+(s.c2-s.c1+1)+' 列',1800);
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>cCopyFallback(text,done));
+  }else cCopyFallback(text,done);
+}
+function cCopyFallback(text,done){
+  const ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');done()}catch(e){alert('复制失败，请手动复制')}
+  ta.remove();
+}
+function cParseBlock(text){
+  return String(text||'').replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter((l,i,a)=>!(i===a.length-1&&l==='')).map(l=>l.split('\t'));
+}
+function cPasteBlock(text){
+  const s=cSelNorm();
+  if(!s){flashTip('请先点选目标起始单元格',1800);return}
+  const grid=cParseBlock(text);
+  if(!grid.length)return;
+  const needR=s.r1+grid.length, needC=s.c1+Math.max(...grid.map(g=>g.length));
+  const startLen=cList.length;
+  const totalRows=DB.contacts.length;
+  if(needR>cList.length){
+    const add=needR-cList.length;
+    const all=DB.contacts.slice();
+    for(let i=0;i<add;i++)all.push({id:uid(),storeCode:'',storeName:'',city:'',district:'',area:'',status:'营业中',channel:'直营',recipient:'',phone:'',address:''});
+    DB.contacts=all;
+    const wasFilter=cFilter;
+    cFilter='';document.getElementById('contactSearch').value='';
+    renderContacts();
+    if(wasFilter)flashTip('已清除搜索并追加 '+add+' 行',2200);
+  }
+  let n=0;
+  grid.forEach((line,ri)=>{
+    line.forEach((v,ci)=>{
+      const r=s.r1+ri,c=s.c1+ci;
+      if(c>=CFIELDS.length)return;
+      if(cSetValAt(r,c,v))n++;
+    });
+  });
+  cWriteBack();
+  cSel={r1:s.r1,r2:s.r1+grid.length-1,c1:s.c1,c2:Math.min(CFIELDS.length-1,s.c1+Math.max(...grid.map(g=>g.length))-1)};
+  cPaintSel();
+  flashTip('✓ 已粘贴 '+n+' 个单元格',1800);
+}
+function cSelColumn(e,c){
+  if(e.target.tagName==='INPUT')return;
+  const trs=[...document.querySelectorAll('#contactBody tr[data-vr]')];
+  if(!trs.length)return;
+  const r1=+trs[0].dataset.vr,r2=+trs[trs.length-1].dataset.vr;
+  cSel={r1,r2,c1:c,c2:c};cAnchor={r:r1,c};
+  cPaintSel();
+}
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('page-contacts').classList.contains('active'))return;
+  const ae=document.activeElement;
+  if(ae&&ae.tagName==='INPUT'&&!ae.closest('#contactBody'))return;
+  const k=(e.key||'').toLowerCase();
+  if((e.ctrlKey||e.metaKey)&&k==='c'){
+    if(ae&&ae.tagName==='INPUT'&&ae.closest('#contactBody')&&ae.selectionStart!==ae.selectionEnd)return;
+    e.preventDefault();cCopy();
+  }
+  if(k==='escape')cClearSel();
+});
+document.addEventListener('paste',e=>{
+  if(!document.getElementById('page-contacts').classList.contains('active'))return;
+  const ae=document.activeElement;
+  if(ae&&ae.tagName==='INPUT'&&!ae.closest('#contactBody'))return;
+  const inField=ae&&ae.tagName==='INPUT'&&ae.closest('#contactBody');
+  const s=cSelNorm();
+  if(inField&&(!s||(s.r1===s.r2&&s.c1===s.c2)))return;
+  if(!s){flashTip('请先点选目标起始单元格',1800);return}
+  const text=(e.clipboardData||window.clipboardData).getData('text');
+  if(!text)return;
+  e.preventDefault();
+  cPasteBlock(text);
+});
+(function cBindMouse(){
+  const body=document.getElementById('contactBody');
+  if(!body)return;
+  body.addEventListener('mousedown',e=>{
+    const info=cCellInfo(e.target);
+    if(!info)return;
+    if(e.shiftKey&&cAnchor){cSel={r1:cAnchor.r,c1:cAnchor.c,r2:info.r,c2:info.c}}
+    else{cAnchor={r:info.r,c:info.c};cSel={r1:info.r,c1:info.c,r2:info.r,c2:info.c}}
+    cDrag=true;cPaintSel();
+    if(document.activeElement!==e.target&&e.target.tagName!=='INPUT'){e.preventDefault();if(document.activeElement&&document.activeElement.blur)document.activeElement.blur()}
+  });
+  body.addEventListener('mousemove',e=>{
+    if(!cDrag||!cAnchor)return;
+    const info=cCellInfo(e.target);
+    if(!info)return;
+    if(cSel&&cSel.r2===info.r&&cSel.c2===info.c)return;
+    cSel={r1:cAnchor.r,c1:cAnchor.c,r2:info.r,c2:info.c};
+    const ae=document.activeElement;
+    if(ae&&ae.tagName==='INPUT'&&ae.closest('#contactBody'))ae.blur();
+    cPaintSel();
+  });
+  document.addEventListener('mouseup',()=>{cDrag=false});
+  body.addEventListener('dblclick',e=>{
+    const el=e.target;
+    if(el.tagName==='INPUT'){el.focus();el.select()}
+  });
+})();
 
 function addContactRow(){
   const c=DB.contacts;
@@ -1002,7 +1200,7 @@ const LABEL_DEFS=[
   ['pageTitle','物流页标题','物流单号上传'],
   ['tabImport','「物流管理」标签页','物流管理'],
   ['tabDashboard','「月度活动汇总」标签页','月度活动汇总'],
-  ['btnContacts','「门店信息」按钮','门店信息'],
+  ['tabContacts','「门店信息」标签页','门店信息'],
   ['btnSettings','「设置」按钮','设置'],
   ['btnExportCsv','「下载CSV」按钮','下载CSV'],
   ['btnNewAct','「新建活动」按钮','新建活动'],
@@ -1023,7 +1221,7 @@ const LABEL_DEFS=[
   ['btnDelSel','「删除选中」按钮','删除选中'],
   ['btnExportContacts','门店页「导出」按钮','导出'],
   ['btnImportContacts','门店页「导入Excel」按钮','导入Excel'],
-  ['contactHint','门店页编辑提示','点击单元格直接编辑，自动保存'],
+  ['contactHint','门店页编辑提示','点击单元格编辑，拖动框选后 Ctrl+C / Ctrl+V 复制粘贴'],
 ];
 function labelOf(key,def){const l=DB.labels;return (l&&l[key])||def}
 function applyLabels(){
