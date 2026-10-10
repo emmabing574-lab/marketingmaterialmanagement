@@ -175,6 +175,57 @@ iframe[id^="sb__open-sandbox"]{display:none!important}
 .load-tip.show{display:flex}
 .load-spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;flex:none}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* ===== 物料分配 ===== */
+.mat-card{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:12px;padding:12px 14px}
+.mat-card-h{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.mat-card-h b{font-size:14px;color:#202124}
+.mat-card-h .mat-stat{font-size:12px;color:#888}
+.mat-card-h .btn{margin-left:auto}
+.mat-scroll{overflow:auto;max-height:210px}
+.mat-scroll table{width:max-content;min-width:100%}
+.mat-scroll th{position:sticky;top:0;z-index:1}
+.mat-scroll td,.mat-scroll th{padding:0}
+.mat-scroll td input{width:100%;border:none;padding:6px 8px;font-size:13px;background:transparent;outline:none;font-family:inherit}
+.mat-scroll td input:focus{background:#e8f0fe;box-shadow:inset 0 0 0 2px #1a73e8}
+.mat-scroll td.num{padding:0 9px;text-align:right;font-size:13px;font-weight:600;color:#202124}
+.mat-scroll td.num.neg{color:#ea4335}
+.mat-scroll td.op{padding:4px 8px;white-space:nowrap}
+.mat-empty{color:#aaa;font-size:13px;padding:12px 4px}
+#allocWrap table{width:max-content;min-width:100%}
+#allocWrap td,#allocWrap th{padding:0}
+#allocBody td{cursor:cell;user-select:none}
+#allocBody td input{user-select:text}
+#allocWrap th[data-c]{cursor:pointer;user-select:none;position:relative;padding-right:22px}
+#allocWrap th[data-c]:hover{background:#e8f0fe;color:#1a73e8}
+#allocWrap th[data-c] .fmark{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:9px;color:#bbb;font-style:normal}
+#allocWrap th[data-c] .fmark::before{content:'▾'}
+#allocWrap th.sorted,#allocWrap th.filtered{background:#e8f0fe;color:#1a73e8}
+#allocWrap th.filtered .fmark{color:#1a73e8}
+#allocBody td.csel{background:#d2e3fc!important;box-shadow:inset 0 0 0 1px #1a73e8}
+#allocBody td.csel input{background:rgba(255,255,255,.35)}
+#allocBody td.col-total input{background:#f8f9fa;font-weight:600;text-align:right}
+#allocBody td.err-cell input{color:#ea4335}
+#allocBody tr.added{background:#f0f7ff}
+.aa-radio{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.aa-radio label{display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border:1px solid #e0e0e0;border-radius:8px;cursor:pointer;font-size:13px;transition:border .12s}
+.aa-radio label:hover{border-color:#aecbfa}
+.aa-radio label input{margin-top:2px;accent-color:#1a73e8}
+.aa-radio label b{display:block;font-size:13px;color:#202124;font-weight:600}
+.aa-radio label span{font-size:12px;color:#888}
+.aa-note{background:#f5f6f7;border-radius:6px;padding:9px 11px;font-size:12px;color:#5f6368;line-height:1.8}
+.aa-note b{color:#202124}
+.aa-preview{background:#f8f9fa;border:1px solid #e8eaed;border-radius:6px;padding:8px 10px;font-size:12px;max-height:190px;overflow:auto;line-height:1.85;color:#444}
+.aa-preview .k{color:#1a73e8;font-weight:600}
+.aa-preview .w{color:#ea4335;font-weight:600}
+.chip-list{display:flex;flex-wrap:wrap;gap:6px;max-height:132px;overflow:auto;padding:6px;border:1px solid #eee;border-radius:6px}
+.chip{padding:3px 9px;border:1px solid #c5dafc;border-radius:12px;background:#f0f6ff;font-size:12px;cursor:pointer;color:#1a73e8;user-select:none}
+.chip:hover{background:#d2e3fc}
+.sp-list{max-height:270px;overflow:auto;border:1px solid #eee;border-radius:6px;padding:4px}
+.sp-item{display:flex;gap:8px;align-items:center;padding:6px 7px;border-bottom:1px solid #f4f4f4;font-size:13px;cursor:pointer}
+.sp-item:last-child{border-bottom:none}
+.sp-item:hover{background:#f0f6ff}
+.sp-item .nm{font-weight:500;color:#202124}
+.sp-item .sub{color:#888;font-size:12px}
 </style>
 </head>
 <body>
@@ -208,7 +259,8 @@ iframe[id^="sb__open-sandbox"]{display:none!important}
 </div>
 
 <div class="tabs">
-  <div class="tab active" data-page="import" data-lk="tabImport">物流管理</div>
+  <div class="tab active" data-page="alloc" data-lk="tabAlloc">物料分配</div>
+  <div class="tab" data-page="import" data-lk="tabImport">物流管理</div>
   <div class="tab" data-page="dashboard" data-lk="tabDashboard">月度活动汇总</div>
   <div class="tab" data-page="contacts" data-lk="tabContacts">门店信息</div>
 </div>
@@ -216,7 +268,7 @@ iframe[id^="sb__open-sandbox"]{display:none!important}
 <div class="content">
 
   <!-- ========== 物流管理 ========== -->
-  <div class="page active" id="page-import">
+  <div class="page" id="page-import">
     <div class="toolbar">
       <h3 style="margin-right:auto;font-size:15px" data-lk="pageTitle">物流单号上传</h3>
       <span style="font-size:13px;color:#666" data-lk="historyLabel">历史物流单</span>
@@ -340,6 +392,57 @@ iframe[id^="sb__open-sandbox"]{display:none!important}
     </div>
     <datalist id="cStatusOpts"><option>营业中</option><option>装修中</option><option>暂停营业</option><option>已关闭</option></datalist>
     <datalist id="cChannelOpts"><option>直营</option><option>授权店</option><option>加盟</option><option>合作</option></datalist>
+  </div>
+
+  <!-- ========== 物料分配 ========== -->
+  <div class="page active" id="page-alloc">
+    <div class="toolbar">
+      <button class="btn btn-primary" data-lk="btnAddMaterial" onclick="openMatModal(-1)">+ 新增物料</button>
+      <button class="btn btn-outline" data-lk="btnAllocImport" onclick="document.getElementById('allocWeightFile').click()">导入权重表</button>
+      <input type="file" id="allocWeightFile" accept=".xlsx,.xls,.csv" style="display:none">
+      <button class="btn btn-outline" data-lk="btnAutoAlloc" onclick="openAutoAlloc()">自动分配</button>
+      <button class="btn btn-gray" data-lk="btnAllocFill" onclick="allocBatchFill()">批量填数</button>
+      <button class="btn btn-danger" data-lk="btnAllocDel" onclick="allocDeleteRows()">删除选中行</button>
+      <button class="btn btn-outline" data-lk="btnPickStore" onclick="openStorePick()">从通讯录选门店</button>
+      <button class="btn btn-gray" data-lk="btnAddRowAlloc" onclick="allocAddRow()">+ 手动加行</button>
+      <button class="btn btn-success" data-lk="btnExportAlloc" onclick="exportAllocXlsx()">导出xlsx</button>
+      <input type="text" class="search-box" id="allocSearch" placeholder="搜索门店、收件人、地址…">
+      <span style="font-size:12px;color:#999;margin-left:auto" data-lk="allocHint">点击单元格编辑，拖动框选后 Ctrl+C / Ctrl+V；单元格可输入 =公式</span>
+    </div>
+
+    <div class="mat-card" id="matCard">
+      <div class="mat-card-h">
+        <b data-lk="matLedgerTitle">物料台账</b>
+        <span class="mat-stat" id="matStat"></span>
+        <button class="btn btn-primary btn-sm" data-lk="btnAddMaterial2" onclick="openMatModal(-1)">+ 新增物料</button>
+      </div>
+      <div class="mat-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width:150px" data-lk="thMatName">物料名称</th>
+              <th style="min-width:110px" data-lk="thMatCode">编号</th>
+              <th style="width:96px" data-lk="thMatHq">总部实发</th>
+              <th style="width:96px" data-lk="thMatMkt">市场下发</th>
+              <th style="width:112px" data-lk="thMatStep">箱规/步长</th>
+              <th style="width:86px" data-lk="thMatDone">已分配</th>
+              <th style="width:86px" data-lk="thMatLeft">剩余</th>
+              <th style="width:130px"></th>
+            </tr>
+          </thead>
+          <tbody id="matBody"></tbody>
+        </table>
+      </div>
+      <div class="mat-empty" id="matEmpty">还没有物料：点右上角「+ 新增物料」建立台账（名称、市场下发数量、箱规），再从通讯录选门店开始分配。</div>
+    </div>
+
+    <div class="table-wrap" id="allocWrap">
+      <table>
+        <thead><tr id="allocHead"></tr></thead>
+        <tbody id="allocBody"></tbody>
+      </table>
+      <div class="pager" id="allocPager"></div>
+    </div>
   </div>
 
 </div>
@@ -468,6 +571,134 @@ iframe[id^="sb__open-sandbox"]{display:none!important}
     </div>
   </div>
 </div>
+<!-- 物料分配：新增/编辑物料 -->
+<div class="modal-overlay" id="matModal">
+  <div class="modal" style="max-width:440px">
+    <h3 id="matModalTitle">新增物料</h3>
+    <div class="form-group">
+      <label>物料名称 *</label>
+      <input id="matName" placeholder="如：品茗杯 / 玻璃杯">
+    </div>
+    <div class="form-group">
+      <label>编号（商品编号，导出发货单用）</label>
+      <input id="matCode" placeholder="如：SKU0001，可留空">
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="form-group" style="flex:1">
+        <label>总部实发</label>
+        <input id="matHq" inputmode="numeric" placeholder="0">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>市场下发（可分配）</label>
+        <input id="matMkt" inputmode="numeric" placeholder="0">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>箱规/步长</label>
+        <input id="matStep" inputmode="numeric" placeholder="留空=不取整">
+      </div>
+    </div>
+    <p style="font-size:12px;color:#999">「箱规/步长」留空表示分配时不按整箱取整；只在自动分配勾选取整时生效。</p>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('matModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveMatModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 物料分配：从通讯录选门店 -->
+<div class="modal-overlay" id="storePickModal">
+  <div class="modal" style="max-width:560px">
+    <h3>从通讯录选门店</h3>
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+      <input type="text" class="search-box" id="spSearch" placeholder="搜索门店名称、代码、收货人…" style="flex:1;width:auto">
+      <label style="display:flex;gap:5px;align-items:center;font-size:13px;color:#555;white-space:nowrap;cursor:pointer">
+        <input type="checkbox" id="spAll" onchange="spToggleAll(this.checked)"> 全选当前结果
+      </label>
+      <span id="spCount" style="font-size:12px;color:#888"></span>
+    </div>
+    <div class="sp-list" id="spList"></div>
+    <p style="font-size:12px;color:#999;margin-top:8px">已在分配表中的门店会自动跳过，不会重复添加。</p>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('storePickModal')">取消</button>
+      <button class="btn btn-primary" onclick="confirmStorePick()">加入分配表</button>
+    </div>
+  </div>
+</div>
+
+<!-- 物料分配：导入权重表 -->
+<div class="modal-overlay" id="weightModal">
+  <div class="modal" style="max-width:600px">
+    <h3>导入权重表</h3>
+    <div id="wiInfo" style="font-size:12px;color:#555;background:#f5f5f5;padding:8px 10px;border-radius:6px;margin-bottom:12px;word-break:break-all"></div>
+    <div class="form-group">
+      <label>① 匹配列（用来对应分配表里的门店）</label>
+      <select id="wiKey" onchange="wiPreview()"></select>
+    </div>
+    <div class="form-group">
+      <label>② 权重公式（点下方列名插入，如：<code>加粉卡片长按UV</code> 或 <code>[UV] * 2</code>）</label>
+      <input id="wiFormula" placeholder="支持 + - * / ( ) 与列名，留空表示取第一列数值" oninput="wiPreview()">
+    </div>
+    <div class="form-group">
+      <label>可选列（点击插入公式）</label>
+      <div class="chip-list" id="wiChips"></div>
+    </div>
+    <label style="display:flex;gap:6px;align-items:center;font-size:13px;color:#555;cursor:pointer;margin-bottom:10px">
+      <input type="checkbox" id="wiNorm" onchange="wiPreview()"> 归一化（结果 ÷ 全表合计，写入 0~1 的比例）
+    </label>
+    <div class="aa-preview" id="wiPreview">填写后显示前几行计算结果</div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('weightModal')">取消</button>
+      <button class="btn btn-primary" onclick="wiApply()">写入权重</button>
+    </div>
+  </div>
+</div>
+
+<!-- 物料分配：自动分配（可选，不点即不生效） -->
+<div class="modal-overlay" id="autoAllocModal">
+  <div class="modal" style="max-width:560px">
+    <h3>自动分配（可选）</h3>
+    <div class="aa-radio">
+      <label><input type="radio" name="aaMode" value="none" checked onchange="aaModeChange()">
+        <span><b>不自动分配（默认）</b><span>保留当前所有数值，不做任何计算。手动录入 / 粘贴数据完全不受影响。</span></span></label>
+      <label><input type="radio" name="aaMode" value="weight" onchange="aaModeChange()">
+        <span><b>按权重分配</b><span>按「权重」列把分配总数摊到各行（可从权重表导入）。</span></span></label>
+      <label><input type="radio" name="aaMode" value="even" onchange="aaModeChange()">
+        <span><b>均分</b><span>忽略权重，各行平均分配（权重列全空时才建议用）。</span></span></label>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="form-group" style="flex:2;min-width:170px">
+        <label>物料</label>
+        <select id="aaMat" onchange="aaMatChange()"></select>
+      </div>
+      <div class="form-group" style="flex:1;min-width:120px">
+        <label>分配总数</label>
+        <input id="aaTotal" inputmode="numeric" placeholder="0" oninput="aaPreview()">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+      <div class="form-group" style="flex:1;min-width:130px">
+        <label>箱规/步长</label>
+        <input id="aaStep" inputmode="numeric" placeholder="1" oninput="aaPreview()">
+      </div>
+      <label style="display:flex;gap:5px;align-items:center;font-size:13px;color:#555;cursor:pointer;padding-bottom:9px;white-space:nowrap">
+        <input type="checkbox" id="aaStepOn" onchange="aaPreview()"> 按步长取整（余数留作缓冲）
+      </label>
+    </div>
+    <div class="form-group" style="margin-top:10px">
+      <label>范围</label>
+      <select id="aaScope" onchange="aaPreview()">
+        <option value="all">当前列表全部行</option>
+        <option value="sel">仅勾选的行</option>
+      </select>
+    </div>
+    <div class="aa-preview" id="aaPreview" style="margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" id="aaUndo" onclick="aaUndo()" style="margin-right:auto">撤销上次自动分配</button>
+      <button class="btn btn-gray" onclick="closeModal('autoAllocModal')">取消</button>
+      <button class="btn btn-primary" id="aaApply" onclick="aaApply()">应用（先看预览）</button>
+    </div>
+  </div>
+</div>
 </div><!-- /appRoot -->
 <div class="load-tip" id="loadTip"><span class="load-spin" id="loadTipSpin"></span><span id="loadTipText">加载中…</span></div>
 
@@ -482,7 +713,7 @@ function lsSet(k,v){
 // ==================== Supabase 云同步 ====================
 let syncCfg=null, applyingRemote=false;
 const syncDirty={}, syncTimers={}, syncMeta={};
-const SYNC_KEYS=['contacts','activities','orders','labels'];
+const SYNC_KEYS=['contacts','activities','orders','labels','materials','alloc'];
 
 function loadSyncCfg(){
   try{
@@ -527,12 +758,14 @@ async function sbGet(key){
 async function sbPut(key,value){
   await sbFetch('/rest/v1/sync_kv',{method:'POST',headers:Object.assign(syncHeaders(),{'Prefer':'resolution=merge-duplicates'}),body:JSON.stringify([{key,value}])});
 }
-function localValue(key){return key==='contacts'?DB.contacts:key==='activities'?DB.activities:key==='labels'?DB.labels:DB.orders}
+function localValue(key){return key==='contacts'?DB.contacts:key==='activities'?DB.activities:key==='labels'?DB.labels:key==='materials'?DB.materials:key==='alloc'?DB.alloc:DB.orders}
 function applyRemote(key,value,ts,alsoPushKey){
   applyingRemote=true;
   try{
     if(key==='contacts')DB.contacts=Array.isArray(value)?value:[];
     else if(key==='activities')DB.activities=Array.isArray(value)?value:[];
+    else if(key==='materials')DB.materials=Array.isArray(value)?value:[];
+    else if(key==='alloc')DB.alloc=Array.isArray(value)?value:[];
     else if(key==='labels'){DB.labels=(value&&typeof value==='object')?value:{};applyLabels()}
     else if(key==='archive'){
       // 旧版客户端只推 archive：本地无订单数据时迁移为物流订单
@@ -622,6 +855,10 @@ const DB={
   set labels(v){if(lsSet('lg2_labels',JSON.stringify(v)))schedulePush('labels')},
   get activities(){try{return JSON.parse(localStorage.getItem('lg2_activities')||'null')||initDefaultActivities()}catch(e){return initDefaultActivities()}},
   set activities(v){if(lsSet('lg2_activities',JSON.stringify(v)))schedulePush('activities')},
+  get materials(){try{return JSON.parse(localStorage.getItem('lg2_materials')||'[]')}catch(e){return []}},
+  set materials(v){if(lsSet('lg2_materials',JSON.stringify(v)))schedulePush('materials')},
+  get alloc(){try{return JSON.parse(localStorage.getItem('lg2_alloc')||'[]')}catch(e){return []}},
+  set alloc(v){if(lsSet('lg2_alloc',JSON.stringify(v)))schedulePush('alloc')},
   get logs(){try{return JSON.parse(localStorage.getItem('lg2_logs')||'[]')}catch(e){return []}},
   set logs(v){lsSet('lg2_logs',JSON.stringify(v))},
 };
@@ -652,6 +889,7 @@ function switchTab(name){
   }
   else if(name==='dashboard')renderDashboard();
   else if(name==='contacts')renderContacts();
+  else if(name==='alloc')renderAlloc();
 }
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.page)));
 function openActModal(){renderActEditList();document.getElementById('actModal').classList.add('show')}
@@ -1222,6 +1460,25 @@ const LABEL_DEFS=[
   ['btnExportContacts','门店页「导出」按钮','导出'],
   ['btnImportContacts','门店页「导入Excel」按钮','导入Excel'],
   ['contactHint','门店页编辑提示','点击单元格编辑，拖动框选后 Ctrl+C / Ctrl+V 复制粘贴'],
+  ['tabAlloc','「物料分配」标签页','物料分配'],
+  ['btnAddMaterial','物料页「新增物料」按钮','+ 新增物料'],
+  ['btnAddMaterial2','台账「新增物料」按钮','+ 新增物料'],
+  ['btnAllocImport','物料页「导入权重表」按钮','导入权重表'],
+  ['btnAutoAlloc','物料页「自动分配」按钮','自动分配'],
+  ['btnAllocFill','物料页「批量填数」按钮','批量填数'],
+  ['btnAllocDel','物料页「删除选中行」按钮','删除选中行'],
+  ['btnPickStore','物料页「从通讯录选门店」按钮','从通讯录选门店'],
+  ['btnAddRowAlloc','物料页「手动加行」按钮','+ 手动加行'],
+  ['btnExportAlloc','物料页「导出xlsx」按钮','导出xlsx'],
+  ['allocHint','物料分配编辑提示','点击单元格编辑，拖动框选后 Ctrl+C / Ctrl+V；单元格可输入 =公式'],
+  ['matLedgerTitle','「物料台账」标题','物料台账'],
+  ['thMatName','物料台账「物料名称」列','物料名称'],
+  ['thMatCode','物料台账「编号」列','编号'],
+  ['thMatHq','物料台账「总部实发」列','总部实发'],
+  ['thMatMkt','物料台账「市场下发」列','市场下发'],
+  ['thMatStep','物料台账「箱规/步长」列','箱规/步长'],
+  ['thMatDone','物料台账「已分配」列','已分配'],
+  ['thMatLeft','物料台账「剩余」列','剩余'],
 ];
 function labelOf(key,def){const l=DB.labels;return (l&&l[key])||def}
 function applyLabels(){
@@ -1821,12 +2078,12 @@ function renderLogs(){
 }
 // ==================== 刷新 ====================
 function refreshAll(){
-  renderContacts();renderDashboard();renderLogs();
+  renderContacts();renderDashboard();renderLogs();renderAlloc();
 }
 
 // ==================== 数据备份 / 环境诊断 ====================
 function backupPayload(){
-  return {v:1,app:'lg2',exportedAt:new Date().toISOString(),contacts:DB.contacts,orders:DB.orders,activities:DB.activities,labels:DB.labels};
+  return {v:1,app:'lg2',exportedAt:new Date().toISOString(),contacts:DB.contacts,orders:DB.orders,activities:DB.activities,labels:DB.labels,materials:DB.materials,alloc:DB.alloc};
 }
 function downloadBackup(){
   try{
@@ -1845,21 +2102,23 @@ function restoreBackup(input){
   rd.onload=function(ev){
     let d=null;
     try{d=JSON.parse(ev.target.result)}catch(e){alert('文件不是有效的 JSON');return}
-    if(!d||(!Array.isArray(d.contacts)&&!Array.isArray(d.orders))){alert('不是本系统导出的备份文件');return}
+    if(!d||(!Array.isArray(d.contacts)&&!Array.isArray(d.orders)&&!Array.isArray(d.materials))){alert('不是本系统导出的备份文件');return}
     const n=(d.contacts||[]).length,m=(d.orders||[]).length;
-    if(!confirm('恢复备份：联系人 '+n+' 条、物流单 '+m+' 条、活动 '+(d.activities||[]).length+' 个。\n将覆盖当前全部数据，确定恢复？'))return;
+    if(!confirm('恢复备份：联系人 '+n+' 条、物流单 '+m+' 条、活动 '+(d.activities||[]).length+' 个、物料 '+(d.materials||[]).length+' 个、分配行 '+(d.alloc||[]).length+' 行。\n将覆盖当前全部数据，确定恢复？'))return;
     applyingRemote=true;
     try{
       if(Array.isArray(d.contacts))DB.contacts=d.contacts;
       if(Array.isArray(d.orders))DB.orders=d.orders;
       if(Array.isArray(d.activities)&&d.activities.length)DB.activities=d.activities;
       if(d.labels&&typeof d.labels==='object')DB.labels=d.labels;
+      if(Array.isArray(d.materials))DB.materials=d.materials;
+      if(Array.isArray(d.alloc))DB.alloc=d.alloc;
     }finally{applyingRemote=false}
     ensureOrderCodes();
     if(!currentOrderId||!findOrder(currentOrderId))currentOrderId=(DB.orders[0]||{}).id||'';
     saveCurrentOrderId();
     restoreSfView();applyLabels();refreshAll();
-    if(syncCfg){schedulePush('contacts');schedulePush('orders');schedulePush('activities');schedulePush('labels')}
+    if(syncCfg){['contacts','orders','activities','labels','materials','alloc'].forEach(schedulePush)}
     hideDataAlert();
     addLog('从备份恢复：联系人 '+n+'、物流单 '+m);
     alert('恢复完成');
@@ -1903,10 +2162,1000 @@ function renderEnvDiag(){
   const line=[];
   line.push('当前地址：'+esc(location.origin+location.pathname));
   line.push('云同步：'+(syncCfg?'<span style="color:#1e8e3e">已配置 '+esc(syncCfg.url)+'</span>':'<span style="color:#c00">未配置（数据只在本机）</span>'));
-  line.push('数据：联系人 '+DB.contacts.length+' 条 · 物流单 '+DB.orders.length+' 条 · 活动 '+DB.activities.length+' 个 · 界面文案 '+Object.keys(DB.labels||{}).length+' 条');
+  line.push('数据：联系人 '+DB.contacts.length+' 条 · 物流单 '+DB.orders.length+' 条 · 活动 '+DB.activities.length+' 个 · 物料 '+DB.materials.length+' 个 · 分配行 '+DB.alloc.length+' 行 · 界面文案 '+Object.keys(DB.labels||{}).length+' 条');
   line.push('本机 localStorage：'+keys+' 个键，约 '+(bytes/1024).toFixed(1)+' KB');
   line.push('换浏览器/换链接数据不会跟过去 —— 云同步或备份文件是唯一恢复手段。');
   el.innerHTML=line.join('<br>');
+}
+
+
+// ==================== 物料分配 ====================
+let aPage=1,aPageSize=50,aFilter='',aSortCi=-1,aSortDir=1,aFilters={};
+let aAll=[],aList=[],aSel=null,aAnchor=null,aDrag=false,allocUndo=null;
+let aColsCache=null,aCtxCache=null;
+let aDebounce=debounce(v=>{aFilter=v;aPage=1;aSel=null;renderAlloc()},300);
+const AFIX=[['storeCode','门店代码'],['storeName','门店名称'],['recipient','收件人'],['phone','收件手机'],['address','收件地址'],['weight','权重']];
+
+function colLetter(i){i++;let s='';while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s}
+function letterIdx(s){let n=0;const t=String(s||'').toUpperCase();for(const ch of t){const c=ch.charCodeAt(0);if(c<65||c>90)return -1;n=n*26+(c-64)}return n-1}
+function numOf(v){
+  if(typeof v==='number')return isFinite(v)?v:0;
+  if(v===null||v===undefined||v===false)return 0;
+  if(v===true)return 1;
+  const t=String(v).replace(/,/g,'').trim();
+  if(!t||t.charAt(0)==='#')return 0;
+  const n=parseFloat(t);
+  return isFinite(n)?n:0;
+}
+function fmtNum(v){if(typeof v!=='number'||!isFinite(v))return '';return String(Math.round(v*1e6)/1e6)}
+
+function allocCols(){
+  if(aColsCache)return aColsCache;
+  const cols=[];
+  const push=o=>{o.letter=colLetter(cols.length);cols.push(o)};
+  for(const[k,t]of AFIX)push({k,t,fixed:true,num:k==='weight'});
+  DB.materials.forEach(m=>push({k:'m:'+m.id,key:'m:'+m.id,t:m.name||'（未命名）',mat:m.id,num:true}));
+  push({k:'__total',t:'合计',total:true,num:true});
+  aColsCache=cols;
+  return cols;
+}
+function aRaw(row,col){
+  if(!row||!col||col.total)return '';
+  if(col.mat!==undefined){const c=row.cells;return (c&&c[col.key]!=null)?String(c[col.key]):''}
+  const v=row[col.k];return v==null?'':String(v);
+}
+function aSet(row,col,v){
+  if(!row||!col||col.total)return;
+  const s=String(v==null?'':v);
+  if(col.mat!==undefined){row.cells=row.cells||{};row.cells[col.key]=s;return}
+  row[col.k]=s;
+}
+function aVal(ctx,ri,ci,stack){
+  if(ri===undefined||ri===null||ri<0||ri>=ctx.list.length||ci<0||ci>=ctx.cols.length)return '';
+  const key=ri+':'+ci;
+  if(ctx.cache.has(key))return ctx.cache.get(key);
+  if(stack.has(key))return '#循环';
+  stack.add(key);
+  let v='';
+  try{
+    const row=ctx.list[ri],col=ctx.cols[ci];
+    if(col.total){
+      let sum=0;
+      for(let c=0;c<ctx.cols.length;c++){
+        if(ctx.cols[c].mat===undefined)continue;
+        sum+=numOf(aVal(ctx,ri,c,stack));
+      }
+      v=sum;
+    }else{
+      const raw=aRaw(row,col);
+      const t=String(raw||'').trim();
+      v=t.charAt(0)==='='?aEval(t.slice(1),ctx,ri,stack):raw;
+    }
+  }finally{stack.delete(key)}
+  ctx.cache.set(key,v);
+  return v;
+}
+function aDisp(ctx,ri,ci){
+  const v=aVal(ctx,ri,ci,new Set());
+  if(typeof v==='number')return v===0?'':fmtNum(v);
+  if(v===null||v===undefined)return '';
+  return String(v);
+}
+function aCtx(){if(!aCtxCache)aCtxCache={list:aList,cols:allocCols(),cache:new Map()};return aCtxCache}
+function aBaseCtx(){
+  const cols=allocCols();
+  const idx=new Map(aAll.map((r,i)=>[r,i]));
+  const ctx={list:aAll,cols,cache:new Map()};
+  return {ctx,idx,cols,disp:(row,ci)=>aDisp(ctx,idx.get(row),ci)};
+}
+
+// ---------- 公式引擎（词法 + 递归下降，不用 eval） ----------
+function fTok(src){
+  const t=[];let i=0;const n=src.length;
+  while(i<n){
+    const c=src[i];
+    if(/\s/.test(c)){i++;continue}
+    if(c>='0'&&c<='9'||c==='.'){
+      let j=i;while(j<n&&((src[j]>='0'&&src[j]<='9')||src[j]==='.'))j++;
+      if(j<n&&(src[j]==='e'||src[j]==='E')&&(src[j+1]==='+'||src[j+1]==='-'||src[j+1]>='0'&&src[j+1]<='9')){
+        j++;if(src[j]==='+'||src[j]==='-')j++;while(j<n&&src[j]>='0'&&src[j]<='9')j++;
+      }
+      t.push({t:'num',v:parseFloat(src.slice(i,j))});i=j;continue;
+    }
+    if(c==='['){const j=src.indexOf(']',i+1);if(j<0)throw new Error('缺少 ]');t.push({t:'id',v:src.slice(i+1,j)});i=j+1;continue}
+    if(c>='A'&&c<='Z'||c>='a'&&c<='z'){
+      let j=i;while(j<n&&((src[j]>='A'&&src[j]<='Z')||(src[j]>='a'&&src[j]<='z')))j++;
+      let k=j;while(k<n&&src[k]>='0'&&src[k]<='9')k++;
+      if(k>j){t.push({t:'ref',col:src.slice(i,j),row:parseInt(src.slice(j,k),10)});i=k}
+      else{t.push({t:'id',v:src.slice(i,j)});i=j}
+      continue;
+    }
+    if(/[A-Za-z0-9_一-龥]/.test(c)){
+      let j=i;while(j<n&&/[A-Za-z0-9_一-龥]/.test(src[j]))j++;
+      t.push({t:'id',v:src.slice(i,j)});i=j;continue;
+    }
+    if(c==='"'||c==="'"){let j=i+1;while(j<n&&src[j]!==c)j++;t.push({t:'str',v:src.slice(i+1,j)});i=j+1;continue}
+    if(c==='<'&&src[i+1]==='='){t.push({t:'op',v:'<='});i+=2;continue}
+    if(c==='>'&&src[i+1]==='='){t.push({t:'op',v:'>='});i+=2;continue}
+    if(c==='<'&&src[i+1]==='>'){t.push({t:'op',v:'<>'});i+=2;continue}
+    if('+−-*/%^(),:='.indexOf(c)>=0){t.push({t:'op',v:c==='−'?'-':c});i++;continue}
+    throw new Error('无法识别的字符「'+c+'」');
+  }
+  return t;
+}
+function fParse(src){
+  const tk=fTok(String(src));let p=0;
+  const peek=()=>tk[p];
+  const next=()=>tk[p++];
+  const eat=v=>{const x=tk[p];if(x&&x.t==='op'&&x.v===v){p++;return true}return false};
+  function cmp(){let l=add();while(peek()&&peek().t==='op'&&['=','<>','>','<','>=','<='].indexOf(peek().v)>=0){const o=next().v;l={t:'bin',o,a:l,b:add()}}return l}
+  function add(){let l=mul();while(peek()&&peek().t==='op'&&(peek().v==='+'||peek().v==='-')){const o=next().v;l={t:'bin',o,a:l,b:mul()}}return l}
+  function mul(){let l=una();while(peek()&&peek().t==='op'&&['*','/','%'].indexOf(peek().v)>=0){const o=next().v;l={t:'bin',o,a:l,b:una()}}return l}
+  function una(){if(peek()&&peek().t==='op'&&(peek().v==='-'||peek().v==='+')){const o=next().v;const a=una();return o==='-'?{t:'neg',a}:a}return pwr()}
+  function pwr(){const b=pri();if(peek()&&peek().t==='op'&&peek().v==='^'){next();return{t:'bin',o:'^',a:b,b:una()}}return b}
+  function pri(){
+    const x=next();
+    if(!x)throw new Error('表达式不完整');
+    if(x.t==='num')return{t:'num',v:x.v};
+    if(x.t==='str')return{t:'str',v:x.v};
+    if(x.t==='ref'){
+      if(peek()&&peek().t==='op'&&peek().v===':'){
+        next();const y=next();
+        if(!y||y.t!=='ref')throw new Error('区间写法应为 A1:B2');
+        return{t:'range',a:x,b:y};
+      }
+      return{t:'ref',col:x.col,row:x.row};
+    }
+    if(x.t==='id'){
+      if(peek()&&peek().t==='op'&&peek().v==='('){
+        next();const args=[];
+        if(!(peek()&&peek().t==='op'&&peek().v===')')){
+          args.push(expr());
+          while(eat(','))args.push(expr());
+        }
+        if(!eat(')'))throw new Error('缺少右括号 )');
+        return{t:'call',name:x.v.toUpperCase(),args};
+      }
+      return{t:'id',v:x.v};
+    }
+    if(x.t==='op'&&x.v==='('){const e=expr();if(!eat(')'))throw new Error('缺少右括号 )');return e}
+    throw new Error('意外的符号「'+(x.v!==undefined?x.v:'')+'」');
+  }
+  function expr(){return cmp()}
+  const ast=expr();
+  if(p<tk.length)throw new Error('表达式有多余内容');
+  return ast;
+}
+function fFlat(a){const o=[];for(const x of a){if(Array.isArray(x))o.push(...x);else o.push(x)}return o}
+function fNums(a){return fFlat(a).map(numOf)}
+function fEval(n,env){
+  if(!n)throw new Error('表达式为空');
+  switch(n.t){
+    case 'num':return n.v;
+    case 'str':return n.v;
+    case 'ref':return env.ref(n);
+    case 'range':return env.range(n);
+    case 'id':return env.id(n);
+    case 'neg':return -numOf(fEval(n.a,env));
+    case 'bin':{
+      const a=fEval(n.a,env),b=fEval(n.b,env);
+      switch(n.o){
+        case '+':return numOf(a)+numOf(b);
+        case '-':return numOf(a)-numOf(b);
+        case '*':return numOf(a)*numOf(b);
+        case '/':return numOf(b)===0?0:numOf(a)/numOf(b);
+        case '%':return numOf(b)===0?0:numOf(a)%numOf(b);
+        case '^':return Math.pow(numOf(a),numOf(b));
+        case '=':return a==b;
+        case '<>':return a!=b;
+        case '>':return numOf(a)>numOf(b);
+        case '<':return numOf(a)<numOf(b);
+        case '>=':return numOf(a)>=numOf(b);
+        case '<=':return numOf(a)<=numOf(b);
+      }
+      throw new Error('未知运算符 '+n.o);
+    }
+    case 'call':{
+      const name=n.name;
+      const args=n.args.map(a=>fEval(a,env));
+      const nums=fNums(args);
+      switch(name){
+        case 'SUM':return nums.reduce((a,b)=>a+b,0);
+        case 'AVG':case 'AVERAGE':return nums.length?nums.reduce((a,b)=>a+b,0)/nums.length:0;
+        case 'MIN':return nums.length?Math.min.apply(null,nums):0;
+        case 'MAX':return nums.length?Math.max.apply(null,nums):0;
+        case 'COUNT':return nums.length;
+        case 'COUNTA':return fFlat(args).filter(v=>v!==''&&v!=null).length;
+        case 'ROUND':{const d=Math.max(0,Math.floor(numOf(args[1])));const m=Math.pow(10,d);return Math.round(numOf(args[0])*m)/m}
+        case 'ABS':return Math.abs(numOf(args[0]));
+        case 'INT':return Math.floor(numOf(args[0]));
+        case 'MOD':return numOf(args[1])===0?0:numOf(args[0])%numOf(args[1]);
+        case 'POWER':return Math.pow(numOf(args[0]),numOf(args[1]));
+        case 'IF':return fTruth(args[0])?args[1]:args[2];
+        case 'IFERROR':return fTruth(args[1])&&/^#/.test(String(args[1]))?args[2]:args[0];
+      }
+      throw new Error('不支持的函数 '+name);
+    }
+  }
+  throw new Error('未知节点');
+}
+function fTruth(v){if(typeof v==='boolean')return v;if(typeof v==='number')return v!==0;if(v==null||v==='')return false;return !/^#/.test(String(v))&&!/^0*$/.test(String(v).replace(/[^0-9]/g,''))}
+function aEval(src,ctx,ri,stack){
+  try{
+    const v=fEval(fParse(src),aEnv(ctx,ri,stack));
+    if(typeof v==='number')return Math.round(v*1e6)/1e6;
+    return v;
+  }catch(e){return '#ERR'}
+}
+function aEnv(ctx,ri,stack){
+  // 表头占第 1 行，数据从第 2 行开始：A1 引用的 row → 数据下标 row-2
+  const cell=(col,row)=>aVal(ctx,row-2,letterIdx(col),stack);
+  return{
+    ref:n=>cell(n.col,n.row),
+    range:n=>{
+      const r1=Math.min(n.a.row,n.b.row)-2,r2=Math.max(n.a.row,n.b.row)-2;
+      const c1=Math.min(letterIdx(n.a.col),letterIdx(n.b.col)),c2=Math.max(letterIdx(n.a.col),letterIdx(n.b.col));
+      const out=[];
+      for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)out.push(aVal(ctx,r,c,stack));
+      return out;
+    },
+    id:n=>{throw new Error('不支持的名称：'+n.v)}
+  };
+}
+function wEnv(rec){
+  return{
+    ref:()=>0,
+    range:()=>[],
+    id:n=>{
+      if(!rec)return 0;
+      if(Object.prototype.hasOwnProperty.call(rec,n.v))return rec[n.v];
+      const k=Object.keys(rec).find(x=>String(x).trim()===String(n.v).trim());
+      return k?rec[k]:0;
+    }
+  };
+}
+
+// ---------- 物料台账 ----------
+function allocUsed(){
+  const cols=allocCols();
+  const ctx={list:aAll,cols,cache:new Map()};
+  const used={};
+  aAll.forEach((row,ri)=>{
+    cols.forEach((col,ci)=>{
+      if(col.mat===undefined)return;
+      used[col.mat]=(used[col.mat]||0)+numOf(aVal(ctx,ri,ci,new Set()));
+    });
+  });
+  return used;
+}
+function renderMats(){
+  const body=document.getElementById('matBody');
+  if(!body)return;
+  const mats=DB.materials;
+  const empty=document.getElementById('matEmpty');
+  if(empty)empty.style.display=mats.length?'none':'block';
+  const used=allocUsed();
+  body.innerHTML=mats.map((m,i)=>{
+    const done=used[m.id]||0;
+    const mkt=m.mkt==null?'':String(m.mkt);
+    const left=mkt.trim()===''?'':(numOf(mkt)-done);
+    return '<tr>'+
+      '<td><input data-mi="'+i+'" data-mf="name" value="'+esc(m.name)+'" placeholder="物料名称"></td>'+
+      '<td><input data-mi="'+i+'" data-mf="code" value="'+esc(m.code)+'" placeholder="编号"></td>'+
+      '<td><input data-mi="'+i+'" data-mf="hq" value="'+esc(m.hq)+'" placeholder="0" inputmode="numeric"></td>'+
+      '<td><input data-mi="'+i+'" data-mf="mkt" value="'+esc(m.mkt)+'" placeholder="0" inputmode="numeric"></td>'+
+      '<td><input data-mi="'+i+'" data-mf="step" value="'+esc(m.step)+'" placeholder="不取整" inputmode="numeric" title="留空 = 分配时不按整箱取整"></td>'+
+      '<td class="num">'+fmtNum(done)+'</td>'+
+      '<td class="num'+(left<0?' neg':'')+'">'+(left===''?'':fmtNum(left))+'</td>'+
+      '<td class="op"><button class="btn btn-sm btn-gray" onclick="openMatModal('+i+')">编辑</button> <button class="btn btn-sm btn-danger" onclick="delMat('+i+')">删除</button></td>'+
+    '</tr>';
+  }).join('');
+  const stat=document.getElementById('matStat');
+  if(stat)stat.textContent=mats.length?('共 '+mats.length+' 个物料 · 分配行 '+aAll.length+' 行'):'';
+}
+function matFieldChange(e){
+  const el=e.target;
+  if(!el.dataset||!el.dataset.mf)return;
+  const i=+el.dataset.mi;
+  const mats=DB.materials;
+  if(!mats[i])return;
+  mats[i][el.dataset.mf]=String(el.value==null?'':el.value);
+  DB.materials=mats;
+  renderAlloc();
+}
+function openMatModal(i){
+  const m=(i>=0&&DB.materials[i])?DB.materials[i]:null;
+  document.getElementById('matModalTitle').textContent=m?'编辑物料':'新增物料';
+  const set=(id,v)=>{document.getElementById(id).value=(v==null?'':String(v))};
+  set('matName',m?m.name:'');
+  set('matCode',m?m.code:'');
+  set('matHq',m?m.hq:'');
+  set('matMkt',m?m.mkt:'');
+  set('matStep',m?m.step:'');
+  document.getElementById('matModal').dataset.edit=m?i:-1;
+  document.getElementById('matModal').classList.add('show');
+  setTimeout(()=>{const el=document.getElementById('matName');if(el){el.focus();el.select()}},60);
+}
+function saveMatModal(){
+  const name=document.getElementById('matName').value.trim();
+  if(!name){alert('请填写物料名称');return}
+  const g=id=>String(document.getElementById(id).value==null?'':document.getElementById(id).value).trim();
+  const obj={name,code:g('matCode'),hq:g('matHq'),mkt:g('matMkt'),step:g('matStep')};
+  const mats=DB.materials;
+  const i=parseInt(document.getElementById('matModal').dataset.edit,10);
+  if(i>=0&&mats[i]){obj.id=mats[i].id;mats[i]=obj}
+  else{obj.id=uid();mats.push(obj)}
+  DB.materials=mats;
+  aColsCache=null;aCtxCache=null;
+  closeModal('matModal');
+  renderAlloc();
+  addLog((i>=0?'编辑':'新增')+'物料「'+name+'」');
+}
+function delMat(i){
+  const m=DB.materials[i];
+  if(!m)return;
+  if(!confirm('删除物料「'+(m.name||'未命名')+'」？该列已填的数值也会一并移除。'))return;
+  const mats=DB.materials.filter((_,j)=>j!==i);
+  DB.materials=mats;
+  aAll.forEach(r=>{if(r.cells)delete r.cells['m:'+m.id]});
+  aColsCache=null;aCtxCache=null;
+  renderAlloc();aSave();
+  addLog('删除物料「'+(m.name||'')+'」');
+}
+function aSave(){DB.alloc=aAll}
+
+// ---------- 渲染 ----------
+function afKey(v){return (v===''||v===null||v===undefined)?'__BLANK__':String(v)}
+function cmpSort(a,b){
+  const an=typeof a==='number'&&isFinite(a),bn=typeof b==='number'&&isFinite(b);
+  if(an&&bn)return a-b;
+  if(an)return -1;
+  if(bn)return 1;
+  return String(a).localeCompare(String(b),'zh');
+}
+function renderAlloc(){
+  const head=document.getElementById('allocHead');
+  const body=document.getElementById('allocBody');
+  if(!head||!body)return;
+  aColsCache=null;aCtxCache=null;
+  let all=DB.alloc;
+  let dirty=false;
+  all.forEach(r=>{
+    if(!r.id){r.id=uid();dirty=true}
+    if(!r.cells){r.cells={};dirty=true}
+  });
+  if(dirty)DB.alloc=all;
+  aAll=all;
+  const cols=allocCols();
+  const base=aBaseCtx();
+  let list=aAll.slice();
+  if(aFilter){
+    const kw=aFilter.toLowerCase();
+    list=list.filter(r=>AFIX.some(([k])=>String(r[k]==null?'':r[k]).toLowerCase().includes(kw)));
+  }
+  Object.keys(aFilters).forEach(ck=>{
+    const set=aFilters[ck];
+    if(!set||!set.size)return;
+    const ci=parseInt(ck,10);
+    if(!cols[ci])return;
+    list=list.filter(r=>set.has(afKey(base.disp(r,ci))));
+  });
+  if(aSortCi>=0&&cols[aSortCi]){
+    const ci=aSortCi;
+    list=list.map(r=>({r,k:base.disp(r,ci)})).sort((x,y)=>cmpSort(x.k,y.k)*aSortDir).map(o=>o.r);
+  }
+  aList=list;
+  renderMats();
+
+  head.innerHTML='<th class="cb-col"><input type="checkbox" id="aCheckAll" onchange="allocToggleAll(this.checked)"></th>'+
+    cols.map((c,i)=>{
+      const cls=[];
+      if(aSortCi===i)cls.push('sorted');
+      if(aFilters[i]&&aFilters[i].size)cls.push('filtered');
+      const tip=aSortCi===i?(aSortDir===1?'当前升序，点击改为降序':'当前降序，点击清除排序'):'点击排序';
+      return '<th data-c="'+i+'" class="'+cls.join(' ')+'" title="'+tip+'，点 ▾ 筛选" onclick="allocSort('+i+')">'+
+        esc(c.t)+'<i class="fmark" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();toggleAFilter(event,'+i+')"></i></th>';
+    }).join('');
+
+  const total=list.length;
+  const pages=Math.max(1,Math.ceil(total/aPageSize));
+  if(aPage>pages)aPage=pages;
+  const start=(aPage-1)*aPageSize;
+  const slice=list.slice(start,start+aPageSize);
+  if(!total){
+    let msg;
+    if(!cols.some(c=>c.mat!==undefined))msg='请先在上方「物料台账」新增物料，再选择门店开始分配。';
+    else if(!aAll.length)msg='还没有分配行：点工具栏「从通讯录选门店」批量加入，或「+ 手动加行」。';
+    else msg='没有匹配当前搜索 / 筛选的行。';
+    body.innerHTML='<tr><td colspan="'+(cols.length+1)+'"><div class="empty">'+msg+'</div></td></tr>';
+    document.getElementById('allocPager').innerHTML='';
+    return;
+  }
+  const ctx=aCtx();
+  body.innerHTML=slice.map((row,vr0)=>{
+    const vr=start+vr0;
+    return '<tr data-id="'+esc(row.id||'')+'" data-vr="'+vr+'">'+
+      '<td class="cb-col"><input type="checkbox" class="a-cb" data-id="'+esc(row.id||'')+'"></td>'+
+      cols.map((col,ci)=>{
+        const raw=col.total?'':aRaw(row,col);
+        const d=aDisp(ctx,vr,ci);
+        const err=/^#/.test(String(d));
+        return '<td data-c="'+ci+'" class="'+(col.total?'col-total ':'')+(err?'err-cell':'')+'">'+
+          '<input data-ci="'+ci+'" data-r="'+vr+'" data-raw="'+esc(raw)+'" value="'+esc(d)+'"'+
+          (col.total?' readonly tabindex="-1"':'')+(col.k==='phone'?' inputmode="numeric"':'')+'></td>';
+      }).join('')+'</tr>';
+  }).join('');
+
+  let pager='';
+  if(pages>1){
+    pager='<button '+(aPage<=1?'disabled':'')+' onclick="aPageGo('+(aPage-1)+')">上一页</button>'+
+      '<span>'+aPage+' / '+pages+'（共'+total+'行'+(total!==aAll.length?'，全部 '+aAll.length+' 行':'')+'）</span>'+
+      '<button '+(aPage>=pages?'disabled':'')+' onclick="aPageGo('+(aPage+1)+')">下一页</button>';
+  }else pager='<span>共'+total+'行'+(total!==aAll.length?'（全部 '+aAll.length+' 行）':'')+'</span>';
+  document.getElementById('allocPager').innerHTML=pager;
+  aPaintSel();
+}
+function aPageGo(p){aPage=p;aSel=null;renderAlloc()}
+function allocToggleAll(on){document.querySelectorAll('#allocBody .a-cb').forEach(cb=>{if(!cb.disabled)cb.checked=on})}
+function allocSort(ci){
+  if(aSortCi!==ci){aSortCi=ci;aSortDir=1}
+  else if(aSortDir===1)aSortDir=-1;
+  else{aSortCi=-1;aSortDir=1}
+  renderAlloc();
+}
+function allocAddRow(){
+  aAll.push({id:uid(),storeCode:'',storeName:'',recipient:'',phone:'',address:'',weight:'',cells:{}});
+  aSave();aFilter='';aPage=Math.max(1,Math.ceil(aAll.length/aPageSize));
+  const sb=document.getElementById('allocSearch');if(sb)sb.value='';
+  renderAlloc();flashTip('已新增 1 行',1500);
+}
+function allocDeleteRows(){
+  const ids=[...document.querySelectorAll('#allocBody .a-cb:checked')].map(c=>String(c.dataset.id));
+  if(!ids.length){alert('请先勾选要删除的行（点行首复选框）');return}
+  if(!confirm('确定删除选中的 '+ids.length+' 行？'))return;
+  aAll=aAll.filter(r=>ids.indexOf(String(r.id))<0);
+  aSave();renderAlloc();addLog('删除分配行 '+ids.length+' 行');
+  flashTip('✓ 已删除 '+ids.length+' 行',1800);
+}
+function allocBatchFill(){
+  const s=aSelNorm();
+  if(!s){alert('请先拖动选中要填充的单元格');return}
+  const v=prompt('输入要填入选中区域的数值或公式：\n以 = 开头表示公式，例如  12  或  =SUM(G2:G60)  或  =ROUND(G2*0.5,0)','');
+  if(v===null)return;
+  const cols=allocCols();
+  let n=0;
+  for(let r=s.r1;r<=s.r2;r++)for(let c=s.c1;c<=s.c2;c++){
+    if(c>=cols.length)continue;
+    if(aSetValAt(r,c,v))n++;
+  }
+  aSave();aCtxCache=null;renderAlloc();
+  flashTip('✓ 已填充 '+n+' 个单元格',1800);
+}
+
+// ---------- 选区 / 复制粘贴 ----------
+function aSelNorm(){if(!aSel)return null;return{r1:Math.min(aSel.r1,aSel.r2),r2:Math.max(aSel.r1,aSel.r2),c1:Math.min(aSel.c1,aSel.c2),c2:Math.max(aSel.c1,aSel.c2)}}
+function aPaintSel(){
+  document.querySelectorAll('#allocBody td.csel').forEach(td=>td.classList.remove('csel'));
+  const s=aSelNorm();if(!s)return;
+  document.querySelectorAll('#allocBody tr[data-vr]').forEach(tr=>{
+    const r=+tr.dataset.vr;
+    if(r<s.r1||r>s.r2)return;
+    [...tr.children].forEach(td=>{
+      const c=td.dataset.c;
+      if(c!==undefined&&+c>=s.c1&&+c<=s.c2)td.classList.add('csel');
+    });
+  });
+}
+function aClearSel(){aSel=null;aAnchor=null;aPaintSel()}
+function aCellInfo(el){
+  const td=el&&el.closest?el.closest('td[data-c]'):null;
+  if(!td)return null;
+  const tr=td.closest('tr[data-vr]');
+  if(!tr)return null;
+  return{r:+tr.dataset.vr,c:+td.dataset.c};
+}
+function aSetValAt(r,c,v){
+  const row=aList[r];const col=allocCols()[c];
+  if(!row||!col||col.total)return false;
+  aSet(row,col,v);return true;
+}
+function aCopy(){
+  const s=aSelNorm();
+  if(!s){flashTip('请先拖动选中单元格',1800);return}
+  const cols=allocCols();const ctx=aCtx();
+  const lines=[];
+  for(let r=s.r1;r<=s.r2;r++){
+    const line=[];
+    for(let c=s.c1;c<=s.c2;c++){
+      if(c>=cols.length){line.push('');continue}
+      const row=aList[r];
+      line.push(cols[c].total?aDisp(ctx,r,c):(row?aRaw(row,cols[c]):''));
+    }
+    lines.push(line.join('\t'));
+  }
+  const text=lines.join('\n');
+  const done=()=>flashTip('✓ 已复制 '+lines.length+' 行 × '+(s.c2-s.c1+1)+' 列',1800);
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done).catch(()=>cCopyFallback(text,done));
+  else cCopyFallback(text,done);
+}
+function aPasteBlock(text){
+  const s=aSelNorm();
+  if(!s){flashTip('请先点选目标起始单元格',1800);return}
+  const grid=cParseBlock(text);
+  if(!grid.length)return;
+  const cols=allocCols();
+  const maxC=Math.max.apply(null,grid.map(g=>g.length));
+  const need=s.r1+grid.length;
+  let appended=0;
+  if(need>aList.length){
+    appended=need-aList.length;
+    for(let i=0;i<appended;i++)aAll.push({id:uid(),storeCode:'',storeName:'',recipient:'',phone:'',address:'',weight:'',cells:{}});
+    if(aFilter){aFilter='';const sb=document.getElementById('allocSearch');if(sb)sb.value=''}
+    aSave();
+  }
+  const needPage=Math.floor(s.r1/aPageSize)+1;
+  if(appended||needPage!==aPage){if(needPage!==aPage)aPage=needPage;renderAlloc()}
+  let n=0;
+  grid.forEach((line,ri)=>{
+    line.forEach((v,ci)=>{
+      const c=s.c1+ci;
+      if(c>=cols.length)return;
+      if(aSetValAt(s.r1+ri,c,v))n++;
+    });
+  });
+  aSave();aCtxCache=null;renderAlloc();
+  aSel={r1:s.r1,r2:Math.min(aList.length-1,s.r1+grid.length-1),c1:s.c1,c2:Math.min(cols.length-1,s.c1+maxC-1)};
+  aPaintSel();
+  flashTip('✓ 已粘贴 '+n+' 个单元格'+(appended?'，并新增 '+appended+' 行':''),1800);
+}
+
+// ---------- 表头筛选 ----------
+function toggleAFilter(e,ci){
+  e.stopPropagation();
+  if(xfPop&&xfPop.dataset.col==='a'+ci){closeXFilter();return}
+  closeXFilter();
+  const base=aBaseCtx();
+  const allKeys=[];const seen=new Set();
+  aAll.forEach(r=>{
+    const k=afKey(base.disp(r,ci));
+    if(!seen.has(k)){seen.add(k);allKeys.push(k)}
+  });
+  if(!allKeys.length)return;
+  const label=k=>k==='__BLANK__'?'（空白）':k;
+  const idxOf=new Map(allKeys.map((k,i)=>[k,i]));
+  const cur=aFilters[ci];
+  let tmp=new Set(cur?[...cur]:allKeys);
+  const anchor=e.currentTarget.closest?e.currentTarget.closest('th'):null;
+  const th=(anchor||e.currentTarget).getBoundingClientRect();
+  const pop=document.createElement('div');
+  pop.className='xf-popup';pop.dataset.col='a'+ci;
+  pop.style.left=Math.max(8,Math.min(th.left,innerWidth-256))+'px';
+  pop.style.top=(th.bottom+4)+'px';
+  pop.innerHTML='<input type="text" class="xf-search" placeholder="搜索（共'+allKeys.length+'项）">'+
+    '<div class="xf-top"><label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" class="xf-all"'+(tmp.size===allKeys.length?' checked':'')+'> 全选/清空</label>'+
+    '<span style="margin-left:auto;color:#1a73e8" class="xf-count">'+tmp.size+'/'+allKeys.length+'</span></div>'+
+    '<div class="xf-list"></div><div class="xf-btns"><button class="clr">清除筛选</button><button class="ok">确定</button></div>';
+  document.body.appendChild(pop);
+  const list=pop.querySelector('.xf-list');
+  const search=pop.querySelector('.xf-search');
+  function renderList(){
+    const q=search.value.toLowerCase();
+    const items=allKeys.filter(k=>!q||label(k).toLowerCase().includes(q));
+    if(!items.length){list.innerHTML='<div class="xf-empty">无匹配项</div>';return}
+    list.innerHTML=items.slice(0,300).map(k=>'<label title="'+esc(label(k))+'"><input type="checkbox" data-i="'+idxOf.get(k)+'"'+(tmp.has(k)?' checked':'')+'><span>'+esc(label(k))+'</span></label>').join('')+(items.length>300?'<div class="xf-empty">仅显示前300项，请搜索缩小范围</div>':'');
+  }
+  function syncCount(){
+    pop.querySelector('.xf-count').textContent=tmp.size+'/'+allKeys.length;
+    pop.querySelector('.xf-all').checked=(tmp.size===allKeys.length);
+  }
+  renderList();
+  search.addEventListener('input',renderList);
+  list.addEventListener('change',ev=>{
+    const cb=ev.target;if(cb.type!=='checkbox')return;
+    const k=allKeys[+cb.dataset.i];
+    if(cb.checked)tmp.add(k);else tmp.delete(k);
+    syncCount();
+  });
+  pop.querySelector('.xf-all').addEventListener('change',ev=>{
+    tmp=ev.target.checked?new Set(allKeys):new Set();renderList();syncCount();
+  });
+  pop.querySelector('.ok').addEventListener('click',()=>{
+    if(tmp.size===allKeys.length)delete aFilters[ci];
+    else aFilters[ci]=tmp;
+    closeXFilter();aPage=1;aSel=null;renderAlloc();
+  });
+  pop.querySelector('.clr').addEventListener('click',()=>{
+    delete aFilters[ci];
+    closeXFilter();aPage=1;aSel=null;renderAlloc();
+  });
+  xfPop=pop;
+}
+
+// ---------- 从通讯录选门店 ----------
+let spFilter='';
+function openStorePick(){
+  spFilter='';
+  const sb=document.getElementById('spSearch');if(sb)sb.value='';
+  renderStorePick();
+  document.getElementById('storePickModal').classList.add('show');
+}
+function spData(){
+  const kw=String(spFilter||'').toLowerCase();
+  return DB.contacts.filter(c=>!kw||['storeCode','storeName','recipient','phone','address'].some(k=>String(c[k]==null?'':c[k]).toLowerCase().includes(kw)));
+}
+function renderStorePick(){
+  const el=document.getElementById('spList');
+  if(!el)return;
+  const list=spData();
+  const have=new Set(aAll.map(r=>String(r.storeCode||'')+'||'+String(r.storeName||'')));
+  el.innerHTML=list.length?list.map(c=>{
+    const key=String(c.storeCode||'')+'||'+String(c.storeName||'');
+    const ex=have.has(key);
+    return '<label class="sp-item"'+(ex?' style="opacity:.45"':'')+'>'+
+      '<input type="checkbox" class="sp-cb" data-id="'+esc(c.id)+'"'+(ex?' disabled':'')+'>'+
+      '<span><span class="nm">'+esc(c.storeName||'（未命名门店）')+'</span> '+
+      '<span class="sub">'+esc(c.storeCode||'无代码')+' · '+esc(c.recipient||'')+' '+esc(c.phone||'')+'</span></span></label>';
+  }).join(''):'<div style="color:#aaa;font-size:13px;padding:16px;text-align:center">没有匹配的门店</div>';
+  const cnt=document.getElementById('spCount');
+  if(cnt)cnt.textContent='结果 '+list.length+' 家 · 已在表内 '+have.size+' 家';
+  const all=document.getElementById('spAll');if(all)all.checked=false;
+}
+function spToggleAll(on){document.querySelectorAll('#spList .sp-cb:not(:disabled)').forEach(cb=>cb.checked=on)}
+function confirmStorePick(){
+  const ids=[...document.querySelectorAll('#spList .sp-cb:checked')].map(c=>c.dataset.id);
+  if(!ids.length){alert('请先勾选要加入的门店');return}
+  let added=0;
+  ids.forEach(id=>{
+    const c=DB.contacts.find(x=>String(x.id)===String(id));
+    if(!c)return;
+    const key=String(c.storeCode||'')+'||'+String(c.storeName||'');
+    if(aAll.some(r=>String(r.storeCode||'')+'||'+String(r.storeName||'')===key))return;
+    aAll.push({id:uid(),storeCode:c.storeCode||'',storeName:c.storeName||'',recipient:c.recipient||'',phone:c.phone||'',address:c.address||'',weight:'',cells:{}});
+    added++;
+  });
+  if(!added){flashTip('所选门店都已在分配表中',2200);return}
+  aSave();aPage=1;renderAlloc();closeModal('storePickModal');
+  addLog('加入 '+added+' 家门店到物料分配');
+  flashTip('✓ 已加入 '+added+' 家门店',2200);
+}
+
+// ---------- 导入权重表 ----------
+let wImp=null;
+function openWeightModal(){
+  if(!wImp||!wImp.rows||!wImp.rows.length){alert('请先选择要导入的权重表文件');return}
+  const info=document.getElementById('wiInfo');
+  info.textContent='文件：'+wImp.file+'　共 '+wImp.rows.length+' 行 × '+wImp.headers.length+' 列';
+  const keySel=document.getElementById('wiKey');
+  keySel.innerHTML=wImp.headers.map(h=>'<option value="'+esc(h)+'">'+esc(h)+'</option>').join('');
+  const guess=wImp.headers.find(h=>/门店|store|名称|编码|代码|ID|id/i.test(h));
+  if(guess)keySel.value=guess;
+  const def=wImp.headers.find(h=>h!==keySel.value);
+  const fi=document.getElementById('wiFormula');
+  fi.value=def||'';
+  document.getElementById('wiChips').innerHTML=wImp.headers.map(h=>'<span class="chip" title="'+esc(h)+'" onclick="wiInsert(decodeURIComponent(\''+encodeURIComponent(h)+'\'))">'+esc(h)+'</span>').join('');
+  wiPreview();
+  document.getElementById('weightModal').classList.add('show');
+}
+function wiInsert(name){
+  const fi=document.getElementById('wiFormula');
+  const tok=/^[A-Za-z][A-Za-z0-9_]*$/.test(name)?name:'['+name+']';
+  fi.value=(fi.value?fi.value+'*':'')+tok;
+  fi.focus();wiPreview();
+}
+function wiRec(r){const rec={};(wImp?wImp.headers:[]).forEach(h=>rec[h]=r[h]);return rec}
+function wiVal(rec){
+  const f=String(document.getElementById('wiFormula').value||'').trim();
+  if(!f)return 0;
+  try{
+    const v=fEval(fParse(f),wEnv(rec));
+    return isFinite(numOf(v))?numOf(v):0;
+  }catch(e){return NaN}
+}
+function wiPreview(){
+  const box=document.getElementById('wiPreview');
+  if(!box)return;
+  if(!wImp){box.textContent='先选择文件';return}
+  const key=document.getElementById('wiKey').value;
+  const norm=document.getElementById('wiNorm').checked;
+  const vals=wImp.rows.map(wiRec).map(r=>({k:String(r[key]==null?'':r[key]).trim(),v:wiVal(r)}));
+  const bad=vals.filter(x=>isNaN(x.v)).length;
+  const sum=vals.reduce((a,b)=>a+(isNaN(b.v)?0:b.v),0);
+  let html='<div>匹配列：<b>'+esc(key)+'</b> · 公式结果合计 <b>'+fmtNum(sum)+'</b>'+
+    (norm?' · 归一化后合计 1':'')+(bad?' · <span class="w">'+bad+' 行公式报错</span>':'')+'</div>';
+  html+='<div style="margin-top:4px;border-top:1px dashed #ddd;padding-top:4px">前 8 行：</div>';
+  html+=vals.slice(0,8).map(x=>{
+    const v=isNaN(x.v)?'#ERR':(norm&&sum>0?fmtNum(x.v/sum):fmtNum(x.v));
+    return '<div>'+esc(x.k||'（空）')+' → <b>'+v+'</b></div>';
+  }).join('');
+  box.innerHTML=html;
+}
+function wiApply(){
+  if(!wImp){alert('请先选择权重表文件');return}
+  const key=document.getElementById('wiKey').value;
+  const norm=document.getElementById('wiNorm').checked;
+  const map=new Map();
+  let sum=0;
+  wImp.rows.map(wiRec).forEach(rec=>{
+    const v=wiVal(rec);
+    const vv=isNaN(v)?0:v;
+    sum+=vv;
+    const k=String(rec[key]==null?'':rec[key]).trim();
+    if(k&&!map.has(k))map.set(k,vv);
+  });
+  if(!map.size){alert('按所选匹配列没有取到任何值');return}
+  let hit=0,miss=0;
+  aAll.forEach(r=>{
+    const cands=[String(r.storeCode||'').trim(),String(r.storeName||'').trim()].filter(Boolean);
+    let v=null;
+    for(const c of cands){if(map.has(c)){v=map.get(c);break}}
+    if(v===null){miss++;return}
+    const w=norm&&sum>0?v/sum:v;
+    r.weight=String(Math.round(w*1e6)/1e6);
+    hit++;
+  });
+  aSave();aCtxCache=null;renderAlloc();closeModal('weightModal');
+  addLog('导入权重表 '+wImp.file+'，写入 '+hit+' 行');
+  flashTip('✓ 已写入 '+hit+' 行权重'+(miss?'，'+miss+' 行未匹配':''),2800);
+}
+
+// ---------- 自动分配（可选） ----------
+function openAutoAlloc(){
+  const mats=DB.materials;
+  if(!mats.length){alert('请先在上方「物料台账」新增物料');return}
+  const sel=document.getElementById('aaMat');
+  sel.innerHTML=mats.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.name||'（未命名）')+'</option>').join('');
+  document.querySelector('input[name=aaMode][value=none]').checked=true;
+  aaMatChange();
+  document.getElementById('aaUndo').disabled=!allocUndo;
+  document.getElementById('autoAllocModal').classList.add('show');
+}
+function aaMode(){const r=document.querySelector('input[name=aaMode]:checked');return r?r.value:'none'}
+function aaModeChange(){aaPreview()}
+function aaMatChange(){
+  const id=document.getElementById('aaMat').value;
+  const m=DB.materials.find(x=>String(x.id)===String(id));
+  const set=(id,v)=>{document.getElementById(id).value=(v==null?'':String(v))};
+  set('aaTotal',m?(m.mkt==null?'':m.mkt):'');
+  set('aaStep',m?(m.step==null||m.step===''?'':m.step):'');
+  document.getElementById('aaStepOn').checked=!!(m&&String(m.step||'').trim()!==''&&numOf(m.step)>0);
+  aaPreview();
+}
+function aaRows(){
+  const scope=document.getElementById('aaScope').value;
+  if(scope==='sel'){
+    const ids=new Set([...document.querySelectorAll('#allocBody .a-cb:checked')].map(c=>String(c.dataset.id)));
+    return aList.filter(r=>ids.has(String(r.id)));
+  }
+  return aList.slice();
+}
+function aaCompute(){
+  const mode=aaMode();
+  if(mode==='none')return{mode:'none'};
+  const cols=allocCols();
+  const mid=document.getElementById('aaMat').value;
+  const col=cols.find(c=>String(c.mat)===String(mid));
+  if(!col)return{mode,err:'找不到该物料对应的列'};
+  const rows=aaRows();
+  if(!rows.length)return{mode,err:'没有可分配的行（先勾选行，或清掉搜索/筛选）'};
+  const total=Math.max(0,numOf(document.getElementById('aaTotal').value));
+  if(!(total>0))return{mode,err:'分配总数需大于 0'};
+  const useStep=document.getElementById('aaStepOn').checked;
+  const step=useStep?Math.max(1,numOf(document.getElementById('aaStep').value)||1):1;
+  const rawW=rows.map(r=>mode==='even'?1:Math.max(0,numOf(r.weight)));
+  const sumW=rawW.reduce((a,b)=>a+b,0);
+  const w=sumW>0?rawW:rows.map(()=>1);
+  const sw=w.reduce((a,b)=>a+b,0)||1;
+  const ideal=w.map(x=>total*x/sw);
+  const base=ideal.map(x=>Math.floor(x/step)*step);
+  let steps=Math.floor((total-base.reduce((a,b)=>a+b,0))/step+1e-9);
+  const order=ideal.map((x,i)=>({i,f:x-base[i]})).sort((a,b)=>b.f-a.f);
+  const out=base.slice();
+  for(let k=0;k<steps&&k<order.length;k++)out[order[k].i]+=step;
+  const sum=out.reduce((a,b)=>a+b,0);
+  const changes=rows.map((r,i)=>{
+    const old=aRaw(r,col);
+    return{name:r.storeName||r.storeCode||'（未命名行）',old,neu:String(out[i]),formula:String(old).trim().charAt(0)==='='};
+  });
+  const oldSum=rows.reduce((a,r)=>a+numOf(aRaw(r,col)),0);
+  return{mode,col,rows,out,sum,buffer:total-sum,total,step,useStep,oldSum,
+    formulaCount:changes.filter(c=>c.formula).length,changes,
+    weightEmpty:mode==='weight'&&sumW<=0};
+}
+function aaPreview(){
+  const box=document.getElementById('aaPreview');
+  const apply=document.getElementById('aaApply');
+  if(!box||!apply)return;
+  const c=aaCompute();
+  if(c.mode==='none'){
+    box.innerHTML='<div class="aa-note">当前选择 <b>不自动分配</b>：不做任何计算，表内已有的数值和公式全部保留。<br>'+
+      '需要自动计算时，勾选上方「按权重分配」或「均分」，这里会显示逐行改动预览，确认无误后再点「应用」。</div>';
+    apply.disabled=true;return;
+  }
+  if(c.err){box.innerHTML='<div class="aa-note" style="color:#ea4335">'+esc(c.err)+'</div>';apply.disabled=true;return}
+  apply.disabled=false;
+  const diff=c.changes.filter(x=>x.old!==x.neu);
+  let h='';
+  h+='<div><span class="k">'+(c.mode==='weight'?'按权重分配':'均分')+'</span> · 目标 <b>'+c.rows.length+'</b> 行 · '+(c.useStep?('步长 '+c.step):'不取整')+'</div>';
+  h+='<div>分配总数 <b>'+fmtNum(c.total)+'</b> → 写入 <b>'+fmtNum(c.sum)+'</b>，余 <span class="w">'+fmtNum(c.buffer)+'</span> 留作缓冲（不足一个步长，不硬塞）</div>';
+  h+='<div>该列原合计 '+fmtNum(c.oldSum)+' → 新合计 '+fmtNum(c.sum)+'</div>';
+  if(c.formulaCount)h+='<div class="w">⚠ 将覆盖 '+c.formulaCount+' 个公式单元格为固定数值</div>';
+  if(c.weightEmpty)h+='<div class="w">⚠ 权重列全为空，已按均分处理</div>';
+  h+='<div style="margin-top:5px;border-top:1px dashed #ddd;padding-top:5px">逐行改动（共 '+diff.length+' 条有变化，最多列 30 条）：</div>';
+  h+=diff.slice(0,30).map(x=>'<div>'+esc(x.name)+'：'+(x.old===''?'空':esc(x.old))+' → <b>'+esc(x.neu)+'</b>'+(x.formula?' <span class="w">(公式)</span>':'')+'</div>').join('');
+  if(!diff.length)h+='<div>各行数值与结果一致，无需改动。</div>';
+  box.innerHTML=h;
+}
+function aaApply(){
+  const c=aaCompute();
+  if(c.mode==='none'){alert('当前选择「不自动分配」，无需应用');return}
+  if(c.err){alert(c.err);return}
+  allocUndo=JSON.stringify(aAll);
+  c.rows.forEach((r,i)=>aSet(r,c.col,String(c.out[i])));
+  aSave();aCtxCache=null;renderAlloc();closeModal('autoAllocModal');
+  const m=DB.materials.find(x=>String(x.id)===String(c.col.mat));
+  addLog('自动分配「'+(m?m.name:'')+'」'+fmtNum(c.sum)+' → '+c.rows.length+' 行');
+  flashTip('✓ 已写入 '+c.rows.length+' 行，合计 '+fmtNum(c.sum)+'（缓冲 '+fmtNum(c.buffer)+'）',3200);
+}
+function aaUndo(){
+  if(!allocUndo){alert('暂无可撤销的自动分配（仅本次会话内有效）');return}
+  if(!confirm('撤销上次自动分配，恢复应用前的全部数值？'))return;
+  aAll=JSON.parse(allocUndo);allocUndo=null;
+  aSave();aCtxCache=null;renderAlloc();closeModal('autoAllocModal');
+  flashTip('已撤销上次自动分配',2000);
+}
+
+// ---------- 导出 xlsx ----------
+function exportAllocXlsx(){
+  if(typeof XLSX==='undefined'){alert('Excel 解析库未加载，请联网后刷新页面重试');return}
+  const mats=DB.materials;
+  if(!mats.length){alert('请先新增物料');return}
+  if(!aList.length){alert('当前列表没有数据');return}
+  const cols=allocCols();const ctx=aCtx();
+  const head=['发货单号','出库类型','商品编号','商品名称','出库数量','收件人','收件手机','收件地址','承运商产品','省仓名称','下单人'];
+  const out=[head];
+  let n=0;
+  aList.forEach((row,ri)=>{
+    mats.forEach(m=>{
+      const ci=cols.findIndex(c=>c.mat===m.id);
+      if(ci<0)return;
+      const v=numOf(aVal(ctx,ri,ci,new Set()));
+      if(!(v>0))return;
+      out.push(['','',String(m.code||''),String(m.name||''),v,
+        String(row.recipient||''),String(row.phone||''),String(row.address||''),'','024DCB','']);
+      n++;
+    });
+  });
+  if(out.length<2){alert('没有数量大于 0 的分配数据（先填数或跑自动分配）');return}
+  const filtered=aList.length!==aAll.length;
+  const ws=XLSX.utils.aoa_to_sheet(out);
+  ws['!cols']=[{wch:16},{wch:8},{wch:16},{wch:24},{wch:10},{wch:10},{wch:14},{wch:42},{wch:10},{wch:10},{wch:10}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'发货单');
+  XLSX.writeFile(wb,'物料分配_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  addLog('导出物料分配 xlsx（'+n+' 条明细，'+aList.length+' 行）');
+  flashTip('✓ 已导出 '+n+' 条发货明细'+(filtered?'（按当前搜索/筛选的 '+aList.length+' 行）':''),3000);
+}
+
+// ---------- 事件绑定 ----------
+(function allocBind(){
+  const body=document.getElementById('allocBody');
+  if(body){
+    body.addEventListener('mousedown',e=>{
+      if(e.target.type==='checkbox')return;
+      const info=aCellInfo(e.target);
+      if(!info)return;
+      if(e.shiftKey&&aAnchor)aSel={r1:aAnchor.r,c1:aAnchor.c,r2:info.r,c2:info.c};
+      else{aAnchor={r:info.r,c:info.c};aSel={r1:info.r,c1:info.c,r2:info.r,c2:info.c}}
+      aDrag=true;aPaintSel();
+      if(document.activeElement!==e.target&&e.target.tagName!=='INPUT'){e.preventDefault();if(document.activeElement&&document.activeElement.blur)document.activeElement.blur()}
+    });
+    body.addEventListener('mousemove',e=>{
+      if(!aDrag||!aAnchor)return;
+      const info=aCellInfo(e.target);
+      if(!info)return;
+      if(aSel&&aSel.r2===info.r&&aSel.c2===info.c)return;
+      aSel={r1:aAnchor.r,c1:aAnchor.c,r2:info.r,c2:info.c};
+      const ae=document.activeElement;
+      if(ae&&ae.tagName==='INPUT'&&ae.closest('#allocBody'))ae.blur();
+      aPaintSel();
+    });
+    body.addEventListener('dblclick',e=>{const el=e.target;if(el.tagName==='INPUT'&&!el.readOnly){el.focus();el.select()}});
+    body.addEventListener('focusin',e=>{
+      const el=e.target;
+      if(el.tagName!=='INPUT'||el.dataset.ci===undefined||el.readOnly)return;
+      if(el.dataset.raw!==undefined)el.value=el.dataset.raw;
+    });
+    body.addEventListener('focusout',e=>{
+      const el=e.target;
+      if(!el||el.tagName!=='INPUT'||el.dataset.ci===undefined)return;
+      const ci=+el.dataset.ci,vr=+el.dataset.r;
+      const cols=allocCols();const col=cols[ci];
+      if(!col||col.total){el.value=aDisp(aCtx(),vr,ci);return}
+      const row=aList[vr];
+      if(!row)return;
+      const nv=String(el.value==null?'':el.value);
+      if(nv!==aRaw(row,col)){aSet(row,col,nv);aSave();aRefreshValues()}
+      else el.value=aDisp(aCtx(),vr,ci);
+    });
+    body.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&e.target.tagName==='INPUT'&&e.target.dataset.ci!==undefined){e.preventDefault();e.target.blur()}
+      if(e.key==='Escape')aClearSel();
+    });
+  }
+  const mat=document.getElementById('matBody');
+  if(mat)mat.addEventListener('change',matFieldChange);
+  const ms=document.getElementById('allocSearch');
+  if(ms)ms.addEventListener('input',e=>aDebounce(e.target.value));
+  const sp=document.getElementById('spSearch');
+  if(sp)sp.addEventListener('input',e=>{spFilter=e.target.value;renderStorePick()});
+  const wfile=document.getElementById('allocWeightFile');
+  if(wfile)wfile.addEventListener('change',function(e){
+    const file=e.target.files&&e.target.files[0];
+    if(!file)return;
+    if(typeof XLSX==='undefined'){alert('Excel 解析库未加载，请联网后刷新页面重试');e.target.value='';return}
+    const reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        const wb=XLSX.read(ev.target.result,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+        if(!rows.length){alert('表格里没有数据行');return}
+        wImp={headers:Object.keys(rows[0]),rows,file:file.name};
+        openWeightModal();
+      }catch(err){alert('解析失败：'+err.message)}
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value='';
+  });
+  ['wiKey','wiFormula','wiNorm'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.addEventListener('change',wiPreview);
+  });
+  ['aaTotal','aaStep','aaScope'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.addEventListener('input',aaPreview);
+  });
+  document.addEventListener('keydown',e=>{
+    if(!document.getElementById('page-alloc').classList.contains('active'))return;
+    const ae=document.activeElement;
+    if(ae&&ae.tagName==='INPUT'&&!ae.closest('#allocBody'))return;
+    const k=(e.key||'').toLowerCase();
+    if((e.ctrlKey||e.metaKey)&&k==='c'){
+      if(ae&&ae.tagName==='INPUT'&&ae.closest('#allocBody')&&ae.selectionStart!==ae.selectionEnd)return;
+      e.preventDefault();aCopy();
+    }
+    if(k==='escape')aClearSel();
+  });
+  document.addEventListener('paste',e=>{
+    if(!document.getElementById('page-alloc').classList.contains('active'))return;
+    const ae=document.activeElement;
+    if(ae&&ae.tagName==='INPUT'&&!ae.closest('#allocBody'))return;
+    const inField=ae&&ae.tagName==='INPUT'&&ae.closest('#allocBody');
+    const s=aSelNorm();
+    if(inField&&(!s||(s.r1===s.r2&&s.c1===s.c2)))return;
+    if(!s){flashTip('请先点选目标起始单元格',1800);return}
+    const text=(e.clipboardData||window.clipboardData).getData('text');
+    if(!text)return;
+    e.preventDefault();
+    aPasteBlock(text);
+  });
+  document.addEventListener('mouseup',()=>{aDrag=false});
+})();
+function aRefreshValues(){
+  aCtxCache=null;
+  const ctx=aCtx();
+  const cols=allocCols();
+  document.querySelectorAll('#allocBody input[data-ci]').forEach(el=>{
+    if(document.activeElement===el)return;
+    const vr=+el.dataset.r,ci=+el.dataset.ci;
+    if(!cols[ci]||!aList[vr])return;
+    const d=aDisp(ctx,vr,ci);
+    el.value=d;
+    el.dataset.raw=cols[ci].total?'':aRaw(aList[vr],cols[ci]);
+    const td=el.parentElement;
+    if(td&&td.classList)td.classList.toggle('err-cell',/^#/.test(String(d)));
+  });
+  renderMats();
 }
 
 // ==================== 初始化 ====================
